@@ -1,7 +1,0 @@
-용어 : LLM (트랜스포머) ex) chat GPT
-기반 원리 - 인공 신경망 (Artificial Neural Network)
-최종 결과 - 표상 수렴
-
-베이지안 통계와 믿음의 확률
-마코프 블랭킷과 경계 개념
-
