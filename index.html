@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>포트폴리오</title>
 
     <style>
@@ -18,16 +19,17 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
-            padding: 60px 20px;
+            padding: 50px 20px;
         }
 
         .card {
             background: white;
             border-radius: 20px;
-            padding: 50px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 45px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
         }
 
         .tag {
@@ -47,25 +49,46 @@
         }
 
         .intro {
-            font-size: 20px;
-            line-height: 1.7;
+            font-size: 19px;
+            line-height: 1.8;
             color: #555;
-            margin-bottom: 40px;
-        }
-
-        .section {
-            margin-top: 35px;
         }
 
         h2 {
-            font-size: 22px;
-            margin-bottom: 15px;
+            font-size: 25px;
+            margin-bottom: 25px;
         }
 
-        ul {
-            padding-left: 20px;
-            line-height: 2;
+        .section {
+            margin-top: 40px;
+        }
+
+        .info-box {
+            background: #f8f9fc;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            margin-top: 0;
+            font-size: 20px;
+        }
+
+        .info-box p {
+            line-height: 1.8;
             color: #555;
+            margin-bottom: 8px;
+        }
+
+        .label {
+            font-weight: bold;
+            color: #222;
+        }
+
+        .result {
+            color: #4f46e5;
+            font-weight: bold;
         }
 
         .public {
@@ -78,17 +101,43 @@
             padding-left: 20px;
         }
 
-        .footer {
-            margin-top: 40px;
-            padding-top: 20px;
+        ul {
+            line-height: 2;
+            color: #555;
+        }
+
+        .strength {
             border-top: 1px solid #eee;
+            padding-top: 30px;
+            margin-top: 30px;
+        }
+
+        .strength:first-of-type {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .strength-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .strength-number {
+            color: #4f46e5;
+            margin-right: 8px;
+        }
+
+        .footer {
+            text-align: center;
             color: #888;
             font-size: 14px;
+            padding: 20px;
         }
 
         @media (max-width: 600px) {
             .container {
-                padding: 30px 15px;
+                padding: 25px 15px;
             }
 
             .card {
@@ -110,6 +159,7 @@
 
     <main class="container">
 
+        <!-- 소개 -->
         <div class="card">
 
             <span class="tag">PORTFOLIO</span>
@@ -121,7 +171,8 @@
                 나의 이력과 역량을 보여주기 위한 것이다.
             </p>
 
-            <section class="section public">
+            <div class="section public">
+
                 <h2>공개할 정보</h2>
 
                 <ul>
@@ -129,9 +180,11 @@
                     <li>자격증</li>
                     <li>이름</li>
                 </ul>
-            </section>
 
-            <section class="section private">
+            </div>
+
+            <div class="section private">
+
                 <h2>공개하지 않을 정보</h2>
 
                 <ul>
@@ -139,12 +192,133 @@
                     <li>졸업학교</li>
                     <li>주소</li>
                 </ul>
-            </section>
 
-            <div class="footer">
-                채용을 위한 포트폴리오 페이지
             </div>
 
+        </div>
+
+
+        <!-- 강점과 근거 -->
+        <div class="card">
+
+            <h2>나의 강점과 근거</h2>
+
+            <!-- 강점 1 -->
+            <div class="strength">
+
+                <div class="strength-title">
+                    <span class="strength-number">01</span>
+                    꾸준함과 자기관리
+                </div>
+
+                <div class="info-box">
+
+                    <p>
+                        <span class="label">언제·어디서:</span>
+                        군 전역 후 헬스장에서
+                    </p>
+
+                    <p>
+                        <span class="label">내가 한 행동:</span>
+                        몸무게 증량을 목표로 주 5일씩 헬스장에 다녔다.
+                    </p>
+
+                    <p class="result">
+                        <span class="label">결과:</span>
+                        꾸준한 운동을 통해 목표한 몸무게 증량에 성공했다.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- 강점 2 -->
+            <div class="strength">
+
+                <div class="strength-title">
+                    <span class="strength-number">02</span>
+                    집중력과 끈기
+                </div>
+
+                <div class="info-box">
+
+                    <p>
+                        <span class="label">언제·어디서:</span>
+                        군 복무 중 군대 내에서
+                    </p>
+
+                    <p>
+                        <span class="label">내가 한 행동:</span>
+                        수능을 준비하기 위해 개인정비시간을 활용하여 꾸준히 공부했다.
+                    </p>
+
+                    <p class="result">
+                        <span class="label">결과:</span>
+                        제한된 시간 안에서도 공부를 지속하며 집중력과 끈기를 기르는 습관을 만들었다.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- 강점 3 -->
+            <div class="strength">
+
+                <div class="strength-title">
+                    <span class="strength-number">03</span>
+                    계획을 세우고 실행하는 능력
+                </div>
+
+                <div class="info-box">
+
+                    <p>
+                        <span class="label">언제·어디서:</span>
+                        군 전역 후 집에서
+                    </p>
+
+                    <p>
+                        <span class="label">내가 한 행동:</span>
+                        시간이 많이 남는 상황에서 AI를 활용하여
+                        하루의 시간을 효율적으로 사용할 수 있는 계획표를 만들었다.
+                    </p>
+
+                    <p class="result">
+                        <span class="label">결과:</span>
+                        계획표를 완성하고 계획에 따라 하루를 보내면서
+                        불필요하게 낭비하는 시간을 줄였다.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 공개 가능한 근거 -->
+        <div class="card">
+
+            <h2>공개 가능한 근거</h2>
+
+            <div class="info-box">
+
+                <h3>경험을 통해 확인할 수 있는 강점</h3>
+
+                <ul>
+                    <li>꾸준히 목표를 실행하는 자기관리 능력</li>
+                    <li>제한된 환경에서도 공부를 지속한 집중력과 끈기</li>
+                    <li>AI를 활용하여 계획을 세우고 실행한 경험</li>
+                </ul>
+
+            </div>
+
+        </div>
+
+
+        <div class="footer">
+            채용을 위한 포트폴리오 페이지
         </div>
 
     </main>
