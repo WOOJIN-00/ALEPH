@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>포트폴리오</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, "Noto Sans KR", sans-serif;
+            background: #f5f6f8;
+            color: #222;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 8px 14px;
+            background: #eef2ff;
+            color: #4f46e5;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin: 0 0 20px;
+        }
+
+        .intro {
+            font-size: 20px;
+            line-height: 1.7;
+            color: #555;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            margin-top: 35px;
+        }
+
+        h2 {
+            font-size: 22px;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            padding-left: 20px;
+            line-height: 2;
+            color: #555;
+        }
+
+        .public {
+            border-left: 5px solid #4f46e5;
+            padding-left: 20px;
+        }
+
+        .private {
+            border-left: 5px solid #999;
+            padding-left: 20px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #888;
+            font-size: 14px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 15px;
+            }
+
+            .card {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 32px;
+            }
+
+            .intro {
+                font-size: 17px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="container">
+
+        <div class="card">
+
+            <span class="tag">PORTFOLIO</span>
+
+            <h1>나의 포트폴리오</h1>
+
+            <p class="intro">
+                이 페이지는 해당 인재 채용을 원하는 기업에게
+                나의 이력과 역량을 보여주기 위한 것이다.
+            </p>
+
+            <section class="section public">
+                <h2>공개할 정보</h2>
+
+                <ul>
+                    <li>경력사항</li>
+                    <li>자격증</li>
+                    <li>이름</li>
+                </ul>
+            </section>
+
+            <section class="section private">
+                <h2>공개하지 않을 정보</h2>
+
+                <ul>
+                    <li>얼굴</li>
+                    <li>졸업학교</li>
+                    <li>주소</li>
+                </ul>
+            </section>
+
+            <div class="footer">
+                채용을 위한 포트폴리오 페이지
+            </div>
+
+        </div>
+
+    </main>
+
+</body>
+</html>
