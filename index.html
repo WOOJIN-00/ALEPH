@@ -4,32 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>포트폴리오</title>
+    <title>송우진 | 포트폴리오</title>
 
     <style>
         * {
             box-sizing: border-box;
         }
 
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             margin: 0;
             font-family: Arial, "Noto Sans KR", sans-serif;
-            background: #f5f6f8;
+            background: #f4f6f9;
             color: #222;
+            overflow-x: hidden;
         }
 
+        /* 전체 내용 최대 폭 */
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 0 auto;
-            padding: 50px 20px;
+            padding: 0 24px;
         }
 
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 45px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.07);
+        /* =========================
+           첫 화면
+        ========================= */
+
+        .hero {
+            min-height: 720px;
+            display: flex;
+            align-items: center;
+            padding: 35px 0;
+        }
+
+        .hero-box {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 45px;
+            align-items: center;
         }
 
         .tag {
@@ -37,37 +54,104 @@
             padding: 8px 14px;
             background: #eef2ff;
             color: #4f46e5;
-            border-radius: 20px;
+            border-radius: 30px;
             font-size: 14px;
             font-weight: bold;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
 
-        h1 {
-            font-size: 42px;
-            margin: 0 0 20px;
+        .hero h1 {
+            font-size: 48px;
+            margin: 0 0 18px;
+            line-height: 1.25;
         }
 
-        .intro {
-            font-size: 19px;
-            line-height: 1.8;
+        .hero h1 span {
+            color: #4f46e5;
+        }
+
+        .hero-text {
+            font-size: 22px;
+            line-height: 1.7;
+            color: #555;
+            margin: 0 0 28px;
+        }
+
+        .purpose {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #4f46e5;
+            font-size: 16px;
+            line-height: 1.7;
             color: #555;
         }
 
-        h2 {
-            font-size: 25px;
-            margin-bottom: 25px;
+        .purpose strong {
+            color: #222;
         }
 
+        /* 근거 이미지 */
+        .evidence-box {
+            background: white;
+            padding: 20px;
+            border-radius: 22px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+
+        .evidence-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 15px;
+        }
+
+        .evidence-image {
+            width: 100%;
+            max-height: 360px;
+            object-fit: contain;
+            display: block;
+            border-radius: 12px;
+            background: #f5f5f5;
+        }
+
+        .evidence-caption {
+            margin: 15px 0 0;
+            font-size: 15px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* =========================
+           공개 범위
+        ========================= */
+
         .section {
-            margin-top: 40px;
+            padding: 70px 0;
+        }
+
+        .section-title {
+            font-size: 32px;
+            margin: 0 0 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
         }
 
         .info-box {
-            background: #f8f9fc;
-            border-radius: 15px;
             padding: 25px;
-            margin-bottom: 20px;
+            border-radius: 15px;
+            background: #f8f9fc;
         }
 
         .info-box h3 {
@@ -75,46 +159,36 @@
             font-size: 20px;
         }
 
-        .info-box p {
-            line-height: 1.8;
-            color: #555;
-            margin-bottom: 8px;
-        }
-
-        .label {
-            font-weight: bold;
-            color: #222;
-        }
-
-        .result {
-            color: #4f46e5;
-            font-weight: bold;
-        }
-
         .public {
-            border-left: 5px solid #4f46e5;
-            padding-left: 20px;
+            border-top: 4px solid #4f46e5;
         }
 
         .private {
-            border-left: 5px solid #999;
-            padding-left: 20px;
+            border-top: 4px solid #888;
         }
 
         ul {
-            line-height: 2;
+            padding-left: 20px;
+            margin-bottom: 0;
+        }
+
+        li {
+            margin-bottom: 12px;
+            line-height: 1.6;
             color: #555;
         }
 
+        /* =========================
+           강점 3개
+        ========================= */
+
         .strength {
-            border-top: 1px solid #eee;
-            padding-top: 30px;
-            margin-top: 30px;
+            padding: 30px 0;
+            border-bottom: 1px solid #eee;
         }
 
-        .strength:first-of-type {
-            border-top: none;
-            padding-top: 0;
+        .strength:last-child {
+            border-bottom: none;
         }
 
         .strength-title {
@@ -128,28 +202,146 @@
             margin-right: 8px;
         }
 
-        .footer {
-            text-align: center;
-            color: #888;
-            font-size: 14px;
+        .strength-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .strength-item {
+            background: #f8f9fc;
+            border-radius: 12px;
             padding: 20px;
         }
 
+        .strength-item h4 {
+            margin: 0 0 10px;
+            font-size: 15px;
+            color: #4f46e5;
+        }
+
+        .strength-item p {
+            margin: 0;
+            line-height: 1.7;
+            color: #555;
+        }
+
+        .result {
+            background: #eef2ff;
+        }
+
+        .result p {
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* 공개 가능한 근거 */
+        .proof-card {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .proof-image {
+            width: 100%;
+            max-height: 230px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: #f5f5f5;
+        }
+
+        .proof-text h3 {
+            font-size: 23px;
+            margin-top: 0;
+        }
+
+        .proof-text p {
+            color: #555;
+            line-height: 1.8;
+        }
+
+        /* 푸터 */
+        footer {
+            text-align: center;
+            padding: 35px 20px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* =========================
+           태블릿
+        ========================= */
+
+        @media (max-width: 800px) {
+
+            .hero {
+                min-height: auto;
+                padding: 60px 0;
+            }
+
+            .hero-box {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .strength-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .proof-card {
+                grid-template-columns: 1fr;
+            }
+
+            .proof-image {
+                max-width: 350px;
+            }
+        }
+
+        /* =========================
+           모바일
+        ========================= */
+
         @media (max-width: 600px) {
+
             .container {
-                padding: 25px 15px;
+                padding: 0 16px;
+            }
+
+            .hero {
+                padding: 45px 0;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero-text {
+                font-size: 18px;
+            }
+
+            .evidence-image {
+                max-height: 280px;
+            }
+
+            .section {
+                padding: 50px 0;
+            }
+
+            .section-title {
+                font-size: 27px;
             }
 
             .card {
-                padding: 30px 20px;
+                padding: 25px 20px;
             }
 
-            h1 {
-                font-size: 32px;
-            }
-
-            .intro {
-                font-size: 17px;
+            .strength {
+                padding: 25px 0;
             }
         }
     </style>
@@ -157,137 +349,54 @@
 
 <body>
 
-    <main class="container">
+    <!-- =========================
+         첫 화면
+         소개 + 활동 + 근거
+    ========================= -->
 
-        <!-- 소개 -->
-        <div class="card">
+    <section class="hero">
+        <div class="container">
 
-            <span class="tag">PORTFOLIO</span>
+            <div class="hero-box">
 
-            <h1>나의 포트폴리오</h1>
+                <!-- 나는 누구인지 + 무엇을 하는지 -->
+                <div>
 
-            <p class="intro">
-                이 페이지는 해당 인재 채용을 원하는 기업에게
-                나의 이력과 역량을 보여주기 위한 것이다.
-            </p>
+                    <span class="tag">PORTFOLIO</span>
 
-            <div class="section public">
+                    <h1>
+                        저는 <span>송우진</span>입니다.
+                    </h1>
 
-                <h2>공개할 정보</h2>
-
-                <ul>
-                    <li>경력사항</li>
-                    <li>자격증</li>
-                    <li>이름</li>
-                </ul>
-
-            </div>
-
-            <div class="section private">
-
-                <h2>공개하지 않을 정보</h2>
-
-                <ul>
-                    <li>얼굴</li>
-                    <li>졸업학교</li>
-                    <li>주소</li>
-                </ul>
-
-            </div>
-
-        </div>
-
-
-        <!-- 강점과 근거 -->
-        <div class="card">
-
-            <h2>나의 강점과 근거</h2>
-
-            <!-- 강점 1 -->
-            <div class="strength">
-
-                <div class="strength-title">
-                    <span class="strength-number">01</span>
-                    꾸준함과 자기관리
-                </div>
-
-                <div class="info-box">
-
-                    <p>
-                        <span class="label">언제·어디서:</span>
-                        군 전역 후 헬스장에서
+                    <p class="hero-text">
+                        현재 <strong>SKT-뉴딜 ALEPH 과정</strong>을 이수 중이며,<br>
+                        꾸준한 학습과 자기관리를 통해<br>
+                        새로운 역량을 쌓아가고 있습니다.
                     </p>
 
-                    <p>
-                        <span class="label">내가 한 행동:</span>
-                        몸무게 증량을 목표로 주 5일씩 헬스장에 다녔다.
-                    </p>
-
-                    <p class="result">
-                        <span class="label">결과:</span>
-                        꾸준한 운동을 통해 목표한 몸무게 증량에 성공했다.
-                    </p>
+                    <div class="purpose">
+                        <strong>이 페이지는</strong> 해당 인재 채용을 원하는 기업에게
+                        나의 이력과 역량을 보여주기 위한 것입니다.
+                    </div>
 
                 </div>
 
-            </div>
+                <!-- 근거 한 가지 -->
+                <div class="evidence-box">
 
-
-            <!-- 강점 2 -->
-            <div class="strength">
-
-                <div class="strength-title">
-                    <span class="strength-number">02</span>
-                    집중력과 끈기
-                </div>
-
-                <div class="info-box">
-
-                    <p>
-                        <span class="label">언제·어디서:</span>
-                        군 복무 중 군대 내에서
+                    <p class="evidence-title">
+                        활동 근거
                     </p>
 
-                    <p>
-                        <span class="label">내가 한 행동:</span>
-                        수능을 준비하기 위해 개인정비시간을 활용하여 꾸준히 공부했다.
-                    </p>
+                    <img
+                        src="skt-aleph.jpg"
+                        alt="K-뉴딜 SKT ALEPH 과정 수강 현황"
+                        class="evidence-image"
+                    >
 
-                    <p class="result">
-                        <span class="label">결과:</span>
-                        제한된 시간 안에서도 공부를 지속하며 집중력과 끈기를 기르는 습관을 만들었다.
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <!-- 강점 3 -->
-            <div class="strength">
-
-                <div class="strength-title">
-                    <span class="strength-number">03</span>
-                    계획을 세우고 실행하는 능력
-                </div>
-
-                <div class="info-box">
-
-                    <p>
-                        <span class="label">언제·어디서:</span>
-                        군 전역 후 집에서
-                    </p>
-
-                    <p>
-                        <span class="label">내가 한 행동:</span>
-                        시간이 많이 남는 상황에서 AI를 활용하여
-                        하루의 시간을 효율적으로 사용할 수 있는 계획표를 만들었다.
-                    </p>
-
-                    <p class="result">
-                        <span class="label">결과:</span>
-                        계획표를 완성하고 계획에 따라 하루를 보내면서
-                        불필요하게 낭비하는 시간을 줄였다.
+                    <p class="evidence-caption">
+                        현재 K-뉴딜 SKT ALEPH 1 과정을 수강하며
+                        지속적으로 학습하고 있습니다.
                     </p>
 
                 </div>
@@ -295,33 +404,223 @@
             </div>
 
         </div>
+    </section>
 
 
-        <!-- 공개 가능한 근거 -->
-        <div class="card">
+    <!-- =========================
+         공개 범위
+    ========================= -->
 
-            <h2>공개 가능한 근거</h2>
+    <section class="section">
+        <div class="container">
 
-            <div class="info-box">
+            <h2 class="section-title">공개 범위</h2>
 
-                <h3>경험을 통해 확인할 수 있는 강점</h3>
+            <div class="info-grid">
 
-                <ul>
-                    <li>꾸준히 목표를 실행하는 자기관리 능력</li>
-                    <li>제한된 환경에서도 공부를 지속한 집중력과 끈기</li>
-                    <li>AI를 활용하여 계획을 세우고 실행한 경험</li>
-                </ul>
+                <div class="info-box public">
+
+                    <h3>공개할 정보</h3>
+
+                    <ul>
+                        <li>경력사항</li>
+                        <li>자격증</li>
+                        <li>이름</li>
+                    </ul>
+
+                </div>
+
+                <div class="info-box private">
+
+                    <h3>공개하지 않을 정보</h3>
+
+                    <ul>
+                        <li>얼굴</li>
+                        <li>졸업학교</li>
+                        <li>주소</li>
+                    </ul>
+
+                </div>
 
             </div>
 
         </div>
+    </section>
 
 
-        <div class="footer">
-            채용을 위한 포트폴리오 페이지
+    <!-- =========================
+         강점과 경험
+    ========================= -->
+
+    <section class="section">
+        <div class="container">
+
+            <h2 class="section-title">나의 강점과 경험</h2>
+
+            <div class="card">
+
+                <!-- 1 -->
+                <div class="strength">
+
+                    <div class="strength-title">
+                        <span class="strength-number">01</span>
+                        꾸준함과 자기관리
+                    </div>
+
+                    <div class="strength-grid">
+
+                        <div class="strength-item">
+                            <h4>언제·어디서</h4>
+                            <p>군 전역 후 헬스장에서</p>
+                        </div>
+
+                        <div class="strength-item">
+                            <h4>내가 실제로 한 행동</h4>
+                            <p>
+                                몸무게 증량을 목표로
+                                주 5일씩 꾸준히 헬스장에 다녔다.
+                            </p>
+                        </div>
+
+                        <div class="strength-item result">
+                            <h4>결과</h4>
+                            <p>
+                                꾸준한 운동을 통해
+                                목표한 몸무게 증량에 성공했다.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- 2 -->
+                <div class="strength">
+
+                    <div class="strength-title">
+                        <span class="strength-number">02</span>
+                        집중력과 끈기
+                    </div>
+
+                    <div class="strength-grid">
+
+                        <div class="strength-item">
+                            <h4>언제·어디서</h4>
+                            <p>군 복무 중 군대 내에서</p>
+                        </div>
+
+                        <div class="strength-item">
+                            <h4>내가 실제로 한 행동</h4>
+                            <p>
+                                수능을 준비하기 위해
+                                개인정비시간을 활용하여 꾸준히 공부했다.
+                            </p>
+                        </div>
+
+                        <div class="strength-item result">
+                            <h4>결과</h4>
+                            <p>
+                                제한된 시간 안에서도 학습을 지속하며
+                                집중력과 끈기를 기르는 습관을 만들었다.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- 3 -->
+                <div class="strength">
+
+                    <div class="strength-title">
+                        <span class="strength-number">03</span>
+                        계획을 세우고 실행하는 능력
+                    </div>
+
+                    <div class="strength-grid">
+
+                        <div class="strength-item">
+                            <h4>언제·어디서</h4>
+                            <p>군 전역 후 집에서</p>
+                        </div>
+
+                        <div class="strength-item">
+                            <h4>내가 실제로 한 행동</h4>
+                            <p>
+                                AI를 활용하여 하루 시간을 효율적으로
+                                사용할 수 있는 계획표를 만들었다.
+                            </p>
+                        </div>
+
+                        <div class="strength-item result">
+                            <h4>결과</h4>
+                            <p>
+                                계획표에 따라 하루를 보내며
+                                불필요하게 낭비하는 시간을 줄였다.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
+    </section>
 
-    </main>
+
+    <!-- =========================
+         공개 가능한 근거
+    ========================= -->
+
+    <section class="section">
+        <div class="container">
+
+            <h2 class="section-title">공개 가능한 근거</h2>
+
+            <div class="card">
+
+                <div class="proof-card">
+
+                    <img
+                        src="skt-aleph.jpg"
+                        alt="SKT ALEPH 과정 수강 현황"
+                        class="proof-image"
+                    >
+
+                    <div class="proof-text">
+
+                        <h3>SKT-뉴딜 ALEPH 과정 수강</h3>
+
+                        <p>
+                            현재 SKT-뉴딜 ALEPH 과정을 이수하며
+                            새로운 기술과 실무 역량을 학습하고 있습니다.
+                            수강 현황 이미지를 통해 현재 진행 중인
+                            활동을 공개 가능한 근거로 확인할 수 있습니다.
+                        </p>
+
+                        <p>
+                            이 경험은 포트폴리오 첫 화면의
+                            <strong>소개 → 현재 활동 → 활동 근거</strong>와
+                            연결됩니다.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+
+    <footer>
+        송우진의 포트폴리오
+    </footer>
 
 </body>
 </html>
