@@ -1,0 +1,1979 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>똥피하기 - 1분 생존 게임</title>
+<style>
+  :root{
+    /* 더럽고 냄새나는 톤: 진흙 갈색 + 곰팡이 초록 + 누런 얼룩 */
+    --purple:#4a3418;
+    --purple-dark:#2b1d0c;
+    --field:#6f7a3c;
+    --field-dark:#5a6430;
+    --slime:#9dbb2f;
+    --slime-dark:#6e8a14;
+    --pink:#f6b8c4;
+    --pink-dark:#e893a4;
+    --blue:#2f8fd6;
+    --blue-dark:#1f6fae;
+    --yellow:#bfa32a;
+    --red:#7d3320;
+    --ink:#241a10;
+    --card:#d9c9a2;
+    --card-border:#8d7a48;
+    --btn-border:#8d7a48;
+    --focus:#ffd23f;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;width:100%;height:100%;
+    /* 얼룩덜룩한 진흙 배경 */
+    background-color:#241a0c;
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(120,95,30,0.35) 0 40px, transparent 41px),
+      radial-gradient(circle at 78% 32%, rgba(90,110,25,0.30) 0 55px, transparent 56px),
+      radial-gradient(circle at 35% 72%, rgba(80,60,20,0.40) 0 70px, transparent 71px),
+      radial-gradient(circle at 88% 84%, rgba(110,130,35,0.22) 0 50px, transparent 51px);
+    font-family:"Trebuchet MS","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+    color:var(--ink);
+    overflow-x:hidden;
+  }
+  .app{
+    min-height:100%;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0 0 16px 0;
+    gap:12px;
+  }
+
+  .topbar{
+    width:100%;
+    background:linear-gradient(180deg,var(--purple),var(--purple-dark));
+    padding:10px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,0.25);
+    position:relative;
+  }
+  /* 상단바 아래로 흘러내리는 초록 점액 — 참고 이미지 2의 끈적한 느낌 */
+  .topbar::after{
+    content:"";
+    position:absolute;
+    left:0; right:0; bottom:-14px;
+    height:16px;
+    background:
+      radial-gradient(circle at 8% 0, var(--slime-dark) 0 9px, transparent 10px),
+      radial-gradient(circle at 22% 0, var(--slime-dark) 0 13px, transparent 14px),
+      radial-gradient(circle at 39% 0, var(--slime-dark) 0 7px, transparent 8px),
+      radial-gradient(circle at 55% 0, var(--slime-dark) 0 15px, transparent 16px),
+      radial-gradient(circle at 71% 0, var(--slime-dark) 0 8px, transparent 9px),
+      radial-gradient(circle at 88% 0, var(--slime-dark) 0 12px, transparent 13px);
+    pointer-events:none;
+  }
+  .topbar .logo{
+    width:26px;height:26px;border-radius:50%;
+    background:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:14px;
+  }
+  .topbar h1{
+    margin:0;
+    color:#fff;
+    font-size:clamp(16px,2.6vw,22px);
+    letter-spacing:0.5px;
+    text-shadow:0 2px 0 rgba(0,0,0,0.15);
+  }
+
+  .subtitle{
+    width:100%;
+    max-width:820px;
+    text-align:center;
+    font-size:clamp(11px,1.6vw,13px);
+    color:#c9c0a0;
+    padding:0 16px;
+  }
+
+  .diff-hud{
+    width:100%;
+    max-width:800px;
+    padding:0 16px;
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    flex-wrap:wrap;
+    font-size:clamp(12px,1.7vw,13px);
+    font-weight:bold;
+    color:var(--ink);
+  }
+  .diff-hud .pill{
+    background:var(--card);
+    border:1px solid var(--card-border);
+    border-radius:20px;
+    padding:3px 12px;
+  }
+
+  .stage-wrap{
+    position:relative;
+    width:100%;
+    max-width:800px;
+    aspect-ratio:800/450;
+    overflow:hidden;
+    border-top:3px solid var(--purple-dark);
+    border-bottom:3px solid var(--purple-dark);
+  }
+  canvas{
+    display:block;
+    width:100%;
+    height:100%;
+  }
+  .stage-wrap.shake{ animation:shakeAnim 0.35s ease; }
+  body.reduce-motion .stage-wrap.shake{ animation:none; }
+  @keyframes shakeAnim{
+    0%{transform:translate(0,0);}
+    20%{transform:translate(-6px,3px);}
+    40%{transform:translate(6px,-3px);}
+    60%{transform:translate(-4px,2px);}
+    80%{transform:translate(4px,-2px);}
+    100%{transform:translate(0,0);}
+  }
+
+  .overlay{
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    background:rgba(30,15,45,0.6);
+    color:#fff;
+    text-align:center;
+    padding:16px;
+  }
+  .overlay.hidden{display:none;}
+  .overlay h2{margin:0;font-size:clamp(22px,4vw,32px);}
+  .overlay p{margin:0;font-size:clamp(13px,2vw,16px);max-width:520px;line-height:1.5;}
+
+  .diff-select{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+    align-items:center;
+    margin-top:2px;
+  }
+  .diff-select span{font-size:13px;opacity:0.9;}
+  .diff-btn{
+    font-family:inherit;
+    font-size:13px;
+    font-weight:bold;
+    padding:8px 14px;
+    border-radius:20px;
+    border:2px solid rgba(255,255,255,0.5);
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+    cursor:pointer;
+  }
+  .diff-btn[aria-pressed="true"]{
+    background:var(--yellow);
+    color:#3a3300;
+    border-color:var(--yellow);
+  }
+  .diff-btn[data-diff="hell"]{
+    border-color:#c0392b;
+    color:#ffb3a0;
+  }
+  .diff-btn[data-diff="hell"][aria-pressed="true"]{
+    background:#8f2318;
+    color:#fff;
+    border-color:#ff5a3c;
+    box-shadow:0 0 10px rgba(255,90,60,0.7);
+  }
+  .diff-btn:focus-visible{ outline:3px solid var(--focus); outline-offset:2px; }
+  .diff-select.locked .diff-btn{ opacity:0.4; pointer-events:none; }
+
+  .overlay button.primary-btn{
+    font-size:clamp(15px,2.2vw,18px);
+    margin-top:4px;
+  }
+
+  .stat-bar{
+    width:100%;
+    max-width:800px;
+    background:var(--purple);
+    padding:10px 16px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    flex-wrap:wrap;
+  }
+  .time-box{
+    background:#fff;
+    border-radius:10px;
+    padding:4px 14px;
+    text-align:center;
+    min-width:70px;
+  }
+  .time-box .t-label{
+    font-size:11px;
+    font-weight:bold;
+    color:var(--blue-dark);
+    letter-spacing:1px;
+  }
+  .time-box .t-value{
+    font-size:20px;
+    font-weight:bold;
+    color:#ff3d7f;
+  }
+  .bars{
+    flex:1;
+    min-width:180px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .bar-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .bar-row .b-label{
+    width:58px;
+    font-size:12px;
+    font-weight:bold;
+    color:#fff;
+    text-shadow:0 1px 0 rgba(0,0,0,0.2);
+  }
+  .bar-track{
+    flex:1;
+    height:14px;
+    background:#fff;
+    border-radius:8px;
+    overflow:hidden;
+    border:1px solid rgba(0,0,0,0.1);
+  }
+  .bar-fill{
+    height:100%;
+    width:0%;
+    transition:width 0.15s linear;
+  }
+  .bar-fill.score{ background:var(--yellow); }
+  .bar-fill.best{ background:var(--red); }
+
+  .rule-panel{
+    width:100%;
+    max-width:800px;
+    box-sizing:border-box;
+    margin:0 16px;
+    background:var(--card);
+    background-image:
+      radial-gradient(circle at 15% 30%, rgba(110,80,20,0.18) 0 22px, transparent 23px),
+      radial-gradient(circle at 72% 65%, rgba(90,110,20,0.16) 0 30px, transparent 31px);
+    border:1px solid var(--card-border);
+    border-radius:12px;
+    padding:10px 14px;
+    font-size:clamp(11px,1.6vw,13px);
+    line-height:1.6;
+  }
+  .rule-panel b{color:#c0392b;}
+
+  .controls{
+    width:100%;
+    max-width:800px;
+    margin:0 16px;
+    width:calc(100% - 32px);
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    justify-content:center;
+  }
+  button{
+    font-family:inherit;
+    font-size:14px;
+    font-weight:bold;
+    padding:10px 16px;
+    border-radius:10px;
+    border:2px solid var(--btn-border);
+    background:#fff;
+    color:var(--ink);
+    cursor:pointer;
+    transition:transform 0.08s ease, background 0.15s ease;
+  }
+  button:hover{background:#fff4e0;}
+  button:active{transform:scale(0.96);}
+  button:focus-visible{ outline:3px solid var(--focus); outline-offset:2px; }
+  button[aria-pressed="true"]{
+    background:var(--purple);
+    color:#fff;
+    border-color:var(--purple);
+  }
+  .primary-btn{
+    background:var(--red);
+    color:#fff;
+    border-color:#c8382c;
+  }
+  .primary-btn:hover{background:#f0594c;}
+
+  footer{
+    width:100%;
+    max-width:800px;
+    text-align:center;
+    font-size:11px;
+    color:#8a8371;
+    margin-top:2px;
+  }
+
+  @media (max-width: 480px){
+    button{padding:9px 12px;font-size:13px;}
+    .bar-row .b-label{width:48px;font-size:11px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="logo">💩</div>
+    <h1>똥피하기</h1>
+  </div>
+  <div class="subtitle">좌우로 움직여 떨어지는 똥을 피하고 1분을 버티세요. 비닐봉지를 잡으면 3초 동안 똥을 안전하게 담을 수 있어요. 냄새나고 더러운 필드에서 살아남으세요.</div>
+
+  <div class="diff-hud" id="diffHudRow">
+    <div class="pill">난이도: <span id="diffLabelTop">보통</span></div>
+    <div class="pill">최고 기록: <span id="bestLabelTop">0.0</span>초</div>
+    <div class="pill">🛍️ 봉지: <span id="bagStatusTop">대기 중</span></div>
+    <div class="pill">😷 방독면: <span id="maskStatusTop">-</span></div>
+  </div>
+
+  <div class="stage-wrap" id="stageWrap">
+    <canvas id="game" width="800" height="450" aria-label="똥피하기 게임 화면"></canvas>
+
+    <div class="overlay" id="overlay">
+      <h2 id="overlayTitle">난이도를 선택하세요</h2>
+      <p id="overlayText">마우스로 캐릭터를 좌우로 움직이거나 ← → 키 / 아래 버튼을 사용해 떨어지는 💩를 피하세요.
+      1분 동안 생존하면 성공, 부딪히면 실패합니다. 10초마다 내려오는 비닐봉지를 잡으면 3초간 똥을 안전하게 담을 수 있어요.</p>
+
+      <div class="diff-select" id="diffSelect">
+        <span>난이도 선택:</span>
+        <button class="diff-btn" data-diff="easy" aria-pressed="false">쉬움</button>
+        <button class="diff-btn" data-diff="normal" aria-pressed="true">보통</button>
+        <button class="diff-btn" data-diff="hard" aria-pressed="false">어려움</button>
+        <button class="diff-btn" data-diff="extreme" aria-pressed="false">익스트림</button>
+        <button class="diff-btn" data-diff="hell" aria-pressed="false">🔥 헬</button>
+      </div>
+
+      <button class="primary-btn" id="overlayBtn">게임 시작</button>
+    </div>
+  </div>
+
+  <div class="stat-bar">
+    <div class="time-box">
+      <div class="t-label">TIME</div>
+      <div class="t-value" id="timeValue">0</div>
+    </div>
+    <div class="bars">
+      <div class="bar-row">
+        <div class="b-label">score</div>
+        <div class="bar-track"><div class="bar-fill score" id="scoreFill"></div></div>
+      </div>
+      <div class="bar-row">
+        <div class="b-label">best</div>
+        <div class="bar-track"><div class="bar-fill best" id="bestFill"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule-panel">
+    <b>규칙</b>: 시작 후 1분 동안 똥에 닿지 않고 버티면 성공, 닿으면 실패합니다. 10초마다 비닐봉지가 내려오며(바닥까지 3초), 잡으면 3초 동안 똥에 닿아도 봉지에 안전하게 담깁니다. 익스트림 모드에서는 봉지가 좌우로 흔들리며 떨어지고, 남은 시간 30초부터는 무작위로 움직이는 똥도 추가로 쏟아집니다. <b>🔥 헬 모드</b>는 익스트림과 같은 낙하 난이도에, 남은 시간 20초부터 5초까지 위에서 엉덩이가 나타나 방귀를 뿜습니다(방귀에 닿아도 실패). 남은 시간 25초 시점엔 방독면 3개가 한 번에 내려오며, 하나만 써도 20초 동안 방귀를 막아줍니다. &nbsp;|&nbsp;
+    <b>조작</b>: 마우스를 좌우로 움직이면 캐릭터가 자연스럽게 따라옵니다. ← → 방향키를 누르고 있으면 같은 방식으로 부드럽게 이동, 아래 버튼으로도 이동 가능, Space = 일시정지/재개, Enter = 시작/다시하기, Esc = 게임 종료.
+  </div>
+
+  <div class="controls">
+    <button id="leftBtn" aria-label="왼쪽으로 이동">◀ 왼쪽</button>
+    <button id="pauseBtn" aria-label="일시정지 또는 재개">⏸ 일시정지</button>
+    <button id="rightBtn" aria-label="오른쪽으로 이동">오른쪽 ▶</button>
+  </div>
+
+  <div class="controls">
+    <button id="muteBtn" aria-pressed="false">🔊 소리 끄기</button>
+    <button id="motionBtn" aria-pressed="false">🌀 움직임 줄이기</button>
+    <button id="restartBtn">🔄 다시하기</button>
+    <button id="quitBtn">⛔ 게임 종료</button>
+  </div>
+
+  <footer>모든 기록은 이 브라우저(localStorage)에만 저장되며 서버로 전송되지 않습니다.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =========================================================
+     설정값
+     ⭐ 난이도(DIFFICULTY_PRESETS) : 아래 4단계 중 하나를 선택하는 것이
+        난이도를 결정하는 핵심 변수입니다. 시작 화면에서 "쉬움/보통/
+        어려움/익스트림" 중 하나를 골라 비교 플레이를 진행하세요.
+        각 단계는 낙하 속도(speedMult)와 동시 낙하 개수(extraChance,
+        maxExtra)를 함께 높여 체감 난이도를 조절합니다.
+     ========================================================= */
+  const DIFFICULTY_PRESETS = {
+    easy:    { label:"쉬움",    spawnMult:1.6,  speedMult:0.75, extraChance:0.0,  maxExtra:0 },
+    normal:  { label:"보통",    spawnMult:1.0,  speedMult:1.0,  extraChance:0.12, maxExtra:1 },
+    hard:    { label:"어려움",  spawnMult:0.62, speedMult:1.3,  extraChance:0.30, maxExtra:1 },
+    extreme: { label:"익스트림", spawnMult:0.4,  speedMult:1.7,  extraChance:0.50, maxExtra:2 },
+    hell:    { label:"헬",      spawnMult:0.4,  speedMult:2.0,  extraChance:0.42, maxExtra:1 }
+  };
+  let selectedDifficulty = "normal";
+
+  const CONFIG = {
+    CANVAS_W: 800,
+    CANVAS_H: 450,
+    ROUND_DURATION_MS: 60000,
+    PLAYER_STEP: 56,
+    PLAYER_SIZE: 44,
+    GROUND_Y: 400,
+    OBSTACLE_SIZE: 28,
+    BASE_SPAWN_MS: 850,
+    MIN_SPAWN_MS: 150,
+    BASE_SPEED: 150,
+    MAX_SPEED_ADD: 150,
+    BAG_INTERVAL_MS: 10000,   // 비닐봉지 아이템 스폰 주기
+    BAG_HOLD_MS: 3000,        // 봉지를 들고 있을 수 있는 시간(이 동안 똥에 닿아도 안전)
+    BAG_SIZE: 50,
+    BAG_FALL_DURATION_MS: 3000,  // 봉지가 바닥까지 떨어지는 데 걸리는 시간
+    BAG_SWAY_AMPLITUDE: 70,      // 익스트림 모드에서 좌우로 흔들리는 폭
+    BAG_SWAY_FREQ: 3.2,          // 익스트림 모드 좌우 흔들림 속도(rad/sec)
+    RANDOM_POOP_SPAWN_MS: 420,   // 익스트림 모드 후반, 무작위 낙하 똥 추가 생성 주기
+    SPLAT_FADE_MS: 3500,         // 바닥에 떨어진 자국이 사라지기까지 걸리는 시간
+
+    // 🔥 헬 모드: 동시에 존재할 수 있는 똥 개수 상한 + 스폰 시 최소 간격
+    // (개수가 무한정 쌓이면 화면 폭 안에서 물리적으로 회피가 불가능한 순간이 생기므로
+    //  "매우 어렵지만 이론적으로는 항상 피할 틈이 있는" 상태를 보장하기 위한 안전장치)
+    HELL_MAX_OBSTACLES: 9,
+    HELL_SPAWN_TRIES: 3,
+
+    // 🔥 헬 모드 전용 설정 — 방귀는 더 이상 "피하는" 대상이 아니라
+    // 방독면 착용 여부만으로 생사가 갈리는 판정 이벤트다(위치는 무관, 회피 불가)
+    HELL_FART_START_MS: 60000 - 20000,  // 남은 시간 20초 시점부터
+    HELL_FART_END_MS: 60000 - 5000,     // 남은 시간 5초 시점까지 지속
+    BIG_FART_INTERVAL_MS: 2400,         // 큰 방귀(전면 판정) 발사 주기
+    BIG_FART_WARNING_MS: 650,           // 발사 전 경고(엉덩이 부풀어오르는 예비동작) 시간
+    BIG_FART_EFFECT_MS: 500,            // 발사 순간 화면 이펙트 지속 시간
+    MASK_SPAWN_AT_MS: 60000 - 25000,    // 남은 시간 25초 시점에 1회 낙하
+    MASK_HOLD_MS: 20000,                // 착용 후 지속 시간
+    MASK_SIZE: 54,
+    MASK_FALL_SPEED: 150,
+    MASK_DROP_COUNT: 3          // 헬 모드에서 한 번에 떨어지는 방독면 개수
+  };
+
+  const SAVE_KEY = "dodge_game_best_survive_ms_v2";
+
+  /* =========================================================
+     DOM 참조
+     ========================================================= */
+  const canvas = document.getElementById("game");
+  const ctx = canvas.getContext("2d");
+  const stageWrap = document.getElementById("stageWrap");
+  const overlay = document.getElementById("overlay");
+  const overlayTitle = document.getElementById("overlayTitle");
+  const overlayText = document.getElementById("overlayText");
+  const overlayBtn = document.getElementById("overlayBtn");
+  const diffSelect = document.getElementById("diffSelect");
+  const diffBtns = Array.prototype.slice.call(document.querySelectorAll(".diff-btn"));
+
+  const diffLabelTop = document.getElementById("diffLabelTop");
+  const bestLabelTop = document.getElementById("bestLabelTop");
+  const bagStatusTop = document.getElementById("bagStatusTop");
+  const maskStatusTop = document.getElementById("maskStatusTop");
+  const timeValue = document.getElementById("timeValue");
+  const scoreFill = document.getElementById("scoreFill");
+  const bestFill = document.getElementById("bestFill");
+
+  const leftBtn = document.getElementById("leftBtn");
+  const rightBtn = document.getElementById("rightBtn");
+  const pauseBtn = document.getElementById("pauseBtn");
+  const muteBtn = document.getElementById("muteBtn");
+  const motionBtn = document.getElementById("motionBtn");
+  const restartBtn = document.getElementById("restartBtn");
+  const quitBtn = document.getElementById("quitBtn");
+
+  /* =========================================================
+     저장 데이터 로드/저장 (빈 값 / 손상된 값 모두 안전 처리)
+     ========================================================= */
+  function loadBest(){
+    try{
+      const raw = localStorage.getItem(SAVE_KEY);
+      if(raw === null || raw === undefined) return 0;
+      const parsed = JSON.parse(raw);
+      if(typeof parsed !== "number" || !isFinite(parsed) || parsed < 0) return 0;
+      return parsed;
+    }catch(e){
+      return 0; // 손상된 값 → 기본값으로 안전 복구
+    }
+  }
+  function saveBest(ms){
+    try{ localStorage.setItem(SAVE_KEY, JSON.stringify(ms)); }catch(e){}
+  }
+
+  let bestMs = loadBest();
+
+  /* =========================================================
+     상태
+     ========================================================= */
+  const STATE = { IDLE:"idle", PLAYING:"playing", PAUSED:"paused", SUCCESS:"success", FAIL:"fail" };
+  let state = STATE.IDLE;
+
+  let isMuted = false;
+  let reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  let player = { x: CONFIG.CANVAS_W/2 - CONFIG.PLAYER_SIZE/2 };
+  let targetX = player.x; // 마우스/키보드 입력이 향하는 목표 위치 — 매 프레임 이 값으로 부드럽게 이동
+  const SMOOTH_RATE = 14; // 초당 수렴 비율(클수록 더 스냅에 가깝고, 작을수록 더 부드러움)
+  let obstacles = [];
+  let splats = [];            // 바닥에 남는 뭉개진 자국들
+  let bags = [];              // 화면에 떨어지고 있는 비닐봉지 아이템들
+  let holdingBag = false;     // 현재 봉지를 들고 있는지(true인 동안 똥에 닿아도 안전)
+  let holdTimeRemainingMs = 0;
+  let bagSpawnAccMs = 0;
+  let randomSpawnAccMs = 0;   // 익스트림/헬 모드 후반 무작위 낙하 똥 스폰 누적시간
+  let buttVisible = false;    // 🔥 헬 모드: 상단 엉덩이 노출 여부
+  let bigFartAccMs = 0;       // 🔥 큰 방귀(전면 판정) 발사 주기 누적시간
+  let bigFartWarningMs = 0;   // 🔥 발사 전 경고(예비동작) 남은 시간 — 0보다 크면 경고 중
+  let bigFartFlashMs = 0;     // 🔥 발사 직후 화면 이펙트 표시 남은 시간
+  let masks = [];             // 화면에 떨어지고 있는 방독면 아이템
+  let maskSpawnedThisRound = false; // 방독면은 라운드당 1회만 낙하
+  let wearingMask = false;
+  let maskTimeRemainingMs = 0;
+  let elapsedMs = 0;
+  let spawnAccMs = 0;
+  let lastTs = null;
+
+  // 배경 장식용 똥 워터마크 위치(고정 배치, 성능을 위해 1회만 계산)
+  const bgPoops = (function(){
+    const arr = [];
+    const cols = 4, rows = 5;
+    for(let r=0;r<rows;r++){
+      for(let c=0;c<cols;c++){
+        arr.push({
+          x: 60 + c*(CONFIG.CANVAS_W-120)/(cols-1) + (r%2===0?-18:18),
+          y: 55 + r*80,
+          s: 0.8 + ((r+c)%3)*0.12
+        });
+      }
+    }
+    return arr;
+  })();
+
+  // 배경 더러운 얼룩(진흙/때) 장식 — 필드를 더 지저분하게 보이도록 고정 배치
+  const bgDirt = (function(){
+    const arr = [];
+    let seed = 7;
+    function rnd(){ seed = (seed*9301+49297)%233280; return seed/233280; }
+    for(let i=0;i<14;i++){
+      arr.push({
+        x: 20 + rnd()*(CONFIG.CANVAS_W-40),
+        y: 20 + rnd()*(CONFIG.CANVAS_H-40),
+        r: 10 + rnd()*22,
+        a: 0.10 + rnd()*0.10
+      });
+    }
+    return arr;
+  })();
+
+  /* =========================================================
+     오디오
+     ========================================================= */
+  let audioCtx = null;
+  function ensureAudio(){
+    if(!audioCtx){
+      try{
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if(AC) audioCtx = new AC();
+      }catch(e){ audioCtx = null; }
+    }
+  }
+  function playTone(freq, durationMs, type){
+    if(isMuted) return;
+    ensureAudio();
+    if(!audioCtx) return;
+    try{
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type || "sine";
+      osc.frequency.value = freq;
+      gain.gain.value = 0.08;
+      osc.connect(gain).connect(audioCtx.destination);
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + durationMs/1000);
+      osc.stop(audioCtx.currentTime + durationMs/1000 + 0.02);
+    }catch(e){}
+  }
+  function playHitSound(){ playTone(160, 220, "sawtooth"); }
+  function playCatchSound(){ playTone(520, 90, "square"); setTimeout(()=>playTone(720,90,"square"), 70); }
+  function playSuccessSound(){
+    playTone(660,120,"triangle");
+    setTimeout(()=>playTone(880,180,"triangle"), 120);
+  }
+
+  /* =========================================================
+     난이도 선택 UI
+     ========================================================= */
+  function setDifficulty(key){
+    if(!DIFFICULTY_PRESETS[key]) return;
+    selectedDifficulty = key;
+    diffBtns.forEach(function(b){
+      b.setAttribute("aria-pressed", String(b.dataset.diff === key));
+    });
+    diffLabelTop.textContent = DIFFICULTY_PRESETS[key].label;
+  }
+  diffBtns.forEach(function(btn){
+    btn.addEventListener("click", function(){
+      if(state === STATE.PLAYING || state === STATE.PAUSED) return; // 라운드 중에는 변경 불가
+      setDifficulty(btn.dataset.diff);
+    });
+  });
+
+  /* =========================================================
+     라운드 제어
+     ========================================================= */
+  function resetRound(){
+    player.x = CONFIG.CANVAS_W/2 - CONFIG.PLAYER_SIZE/2;
+    targetX = player.x;
+    keyLeftHeld = false;
+    keyRightHeld = false;
+    obstacles = [];
+    splats = [];
+    bags = [];
+    holdingBag = false;
+    holdTimeRemainingMs = 0;
+    bagSpawnAccMs = 0;
+    randomSpawnAccMs = 0;
+    buttVisible = false;
+    bigFartAccMs = 0;
+    bigFartWarningMs = 0;
+    bigFartFlashMs = 0;
+    masks = [];
+    maskSpawnedThisRound = false;
+    wearingMask = false;
+    maskTimeRemainingMs = 0;
+    elapsedMs = 0;
+    spawnAccMs = 0;
+    lastTs = null;
+  }
+
+  function startGame(){
+    resetRound();
+    state = STATE.PLAYING;
+    overlay.classList.add("hidden");
+    updateHud();
+  }
+
+  function endRound(newState){
+    state = newState;
+    const survived = Math.min(elapsedMs, CONFIG.ROUND_DURATION_MS);
+    if(survived > bestMs){
+      bestMs = survived;
+      saveBest(bestMs);
+    }
+    diffSelect.classList.remove("locked");
+    if(newState === STATE.FAIL){
+      playHitSound();
+      triggerShake();
+      overlayTitle.textContent = "😵 실패!";
+      overlayText.textContent = (elapsedMs/1000).toFixed(1) + "초 만에 똥에 맞았어요. 다시 도전해보세요!";
+    }else{
+      playSuccessSound();
+      overlayTitle.textContent = "🎉 성공!";
+      overlayText.textContent = "1분 동안 살아남았어요! 최고 기록: " + (bestMs/1000).toFixed(1) + "초";
+    }
+    overlayBtn.textContent = "다시하기";
+    overlay.classList.remove("hidden");
+    updateHud();
+  }
+
+  function triggerShake(){
+    if(reduceMotion) return;
+    stageWrap.classList.remove("shake");
+    void stageWrap.offsetWidth;
+    stageWrap.classList.add("shake");
+  }
+
+  function togglePause(){
+    if(state === STATE.PLAYING){
+      state = STATE.PAUSED;
+      overlayTitle.textContent = "⏸ 일시정지";
+      overlayText.textContent = "재개하려면 아래 버튼을 누르거나 Space 키를 누르세요.";
+      overlayBtn.textContent = "재개하기";
+      diffSelect.classList.add("locked");
+      overlay.classList.remove("hidden");
+    }else if(state === STATE.PAUSED){
+      state = STATE.PLAYING;
+      lastTs = null;
+      overlay.classList.add("hidden");
+    }
+    updateHud();
+  }
+
+  /* =========================================================
+     입력 처리 — 마우스/키보드 모두 "목표 위치(targetX)"를 갱신하고,
+     실제 이동은 매 프레임 그 목표를 향해 부드럽게 수렴한다.
+     키보드는 방향키를 누르고 있는 동안 계속 목표를 밀어내어
+     마우스로 움직이는 것과 동일하게 연속적으로 부드럽게 이동한다.
+     ========================================================= */
+  const KEYBOARD_MOVE_SPEED = 480; // 방향키를 누르고 있는 동안의 이동 속도(px/sec)
+  let keyLeftHeld = false, keyRightHeld = false;
+
+  function clampX(x){
+    const min = 4, max = CONFIG.CANVAS_W - CONFIG.PLAYER_SIZE - 4;
+    return Math.max(min, Math.min(max, x));
+  }
+
+  function movePlayer(dir){
+    if(state !== STATE.PLAYING) return;
+    // 버튼 클릭 등 "1회 입력"용 — 목표 위치를 한 스텝만큼 이동시킨다.
+    targetX = clampX(targetX + dir * CONFIG.PLAYER_STEP);
+  }
+
+  function moveTargetTo(x){
+    if(state !== STATE.PLAYING) return;
+    targetX = clampX(x);
+  }
+
+  function canvasXFromEvent(clientX){
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = CONFIG.CANVAS_W / rect.width;
+    return (clientX - rect.left) * scaleX - CONFIG.PLAYER_SIZE/2;
+  }
+
+  canvas.addEventListener("mousemove", function(e){
+    moveTargetTo(canvasXFromEvent(e.clientX));
+  });
+  canvas.addEventListener("touchmove", function(e){
+    if(e.touches && e.touches.length > 0){
+      moveTargetTo(canvasXFromEvent(e.touches[0].clientX));
+      e.preventDefault();
+    }
+  }, { passive:false });
+
+  window.addEventListener("keydown", function(e){
+    if(e.key === "ArrowLeft"){ keyLeftHeld = true; e.preventDefault(); return; }
+    if(e.key === "ArrowRight"){ keyRightHeld = true; e.preventDefault(); return; }
+    if(e.repeat) return;
+    if(e.key === " " || e.code === "Space"){
+      if(state === STATE.PLAYING || state === STATE.PAUSED) togglePause();
+      e.preventDefault();
+    }else if(e.key === "Escape"){
+      if(state === STATE.PLAYING || state === STATE.PAUSED) quitGame();
+      e.preventDefault();
+    }else if(e.key === "Enter"){
+      if(state === STATE.IDLE || state === STATE.SUCCESS || state === STATE.FAIL) startGame();
+      e.preventDefault();
+    }
+  });
+
+  window.addEventListener("keyup", function(e){
+    if(e.key === "ArrowLeft"){ keyLeftHeld = false; }
+    else if(e.key === "ArrowRight"){ keyRightHeld = false; }
+  });
+
+  window.addEventListener("blur", function(){
+    // 다른 창으로 포커스가 빠져나가면 방향키가 눌린 채로 고정되는 것을 방지
+    keyLeftHeld = false;
+    keyRightHeld = false;
+  });
+
+  leftBtn.addEventListener("click", function(){ movePlayer(-1); });
+  rightBtn.addEventListener("click", function(){ movePlayer(1); });
+  pauseBtn.addEventListener("click", function(){
+    if(state === STATE.PLAYING || state === STATE.PAUSED) togglePause();
+  });
+  restartBtn.addEventListener("click", function(){ startGame(); });
+
+  // 게임 종료: 진행 중인 라운드를 중단하고 시작 화면으로 되돌린다(최고 기록은 반영 후 유지)
+  function quitGame(){
+    const survived = Math.min(elapsedMs, CONFIG.ROUND_DURATION_MS);
+    if(survived > bestMs){ bestMs = survived; saveBest(bestMs); }
+    state = STATE.IDLE;
+    resetRound();
+    diffSelect.classList.remove("locked");
+    overlayTitle.textContent = "게임을 종료했습니다";
+    overlayText.textContent = "난이도를 고르고 다시 시작할 수 있어요. 최고 기록: " + (bestMs/1000).toFixed(1) + "초";
+    overlayBtn.textContent = "게임 시작";
+    overlay.classList.remove("hidden");
+    updateHud();
+  }
+  quitBtn.addEventListener("click", quitGame);
+  overlayBtn.addEventListener("click", function(){
+    if(state === STATE.PAUSED) togglePause();
+    else startGame();
+  });
+
+  muteBtn.addEventListener("click", function(){
+    isMuted = !isMuted;
+    muteBtn.setAttribute("aria-pressed", String(isMuted));
+    muteBtn.textContent = isMuted ? "🔇 소리 켜기" : "🔊 소리 끄기";
+  });
+  motionBtn.addEventListener("click", function(){
+    reduceMotion = !reduceMotion;
+    motionBtn.setAttribute("aria-pressed", String(reduceMotion));
+    motionBtn.textContent = reduceMotion ? "🌀 움직임 켜기" : "🌀 움직임 줄이기";
+    document.body.classList.toggle("reduce-motion", reduceMotion);
+  });
+
+  document.addEventListener("visibilitychange", function(){
+    if(document.hidden && state === STATE.PLAYING){
+      togglePause();
+    }
+  });
+
+  /* =========================================================
+     장애물 스폰 / 갱신 (난이도 프리셋 반영)
+     ========================================================= */
+  function preset(){ return DIFFICULTY_PRESETS[selectedDifficulty]; }
+
+  function currentSpawnIntervalMs(){
+    const ramp = Math.max(0, CONFIG.BASE_SPAWN_MS - elapsedMs * 0.01);
+    return Math.max(CONFIG.MIN_SPAWN_MS, ramp) * preset().spawnMult;
+  }
+  function currentFallSpeed(){
+    const ramp = Math.min(CONFIG.MAX_SPEED_ADD, elapsedMs * 0.0025);
+    return (CONFIG.BASE_SPEED + ramp) * preset().speedMult;
+  }
+
+  // 🔥 헬 모드 전용: 최근 상단부(y<90)의 다른 똥들과 최대한 떨어진 x를 골라
+  // 스폰 순간부터 국지적으로 너무 뭉치지 않도록 한다 (전체 개수 상한과 함께 작동)
+  function pickHellSpawnX(size){
+    const usable = CONFIG.CANVAS_W - size - 20;
+    let bestX = 10 + Math.random()*usable;
+    let bestScore = -1;
+    for(let attempt=0; attempt<CONFIG.HELL_SPAWN_TRIES; attempt++){
+      const x = 10 + Math.random()*usable;
+      let minDist = Infinity;
+      for(const o of obstacles){
+        if(o.y < 90){
+          minDist = Math.min(minDist, Math.abs((x+size/2) - (o.x+o.size/2)));
+        }
+      }
+      if(minDist === Infinity){ bestX = x; break; }
+      if(minDist > bestScore){ bestScore = minDist; bestX = x; }
+    }
+    return bestX;
+  }
+
+  function spawnOne(){
+    if(selectedDifficulty === "hell" && obstacles.length >= CONFIG.HELL_MAX_OBSTACLES) return;
+    const x = selectedDifficulty === "hell"
+      ? pickHellSpawnX(CONFIG.OBSTACLE_SIZE)
+      : 10 + Math.random() * (CONFIG.CANVAS_W - CONFIG.OBSTACLE_SIZE - 20);
+    obstacles.push({
+      x:x, y:-CONFIG.OBSTACLE_SIZE, size:CONFIG.OBSTACLE_SIZE,
+      speed: currentFallSpeed(), wobble: Math.random()*Math.PI*2, driftVx: 0
+    });
+  }
+  function spawnObstacle(){
+    spawnOne();
+    const p = preset();
+    let extra = 0;
+    for(let i=0;i<p.maxExtra;i++){
+      if(Math.random() < p.extraChance) extra++;
+    }
+    for(let i=0;i<extra;i++) spawnOne();
+  }
+
+  // 익스트림 모드 후반(남은 시간 30초 이하)에 추가되는, 좌우로 무작위 이동하며
+  // 떨어지는 똥 — 기존의 일직선 낙하 똥과 별도로 동시에 생성된다.
+  function spawnRandomDriftObstacle(){
+    if(selectedDifficulty === "hell" && obstacles.length >= CONFIG.HELL_MAX_OBSTACLES) return;
+    const x = selectedDifficulty === "hell"
+      ? pickHellSpawnX(CONFIG.OBSTACLE_SIZE)
+      : 10 + Math.random() * (CONFIG.CANVAS_W - CONFIG.OBSTACLE_SIZE - 20);
+    const dir = Math.random() < 0.5 ? -1 : 1;
+    obstacles.push({
+      x:x, y:-CONFIG.OBSTACLE_SIZE, size:CONFIG.OBSTACLE_SIZE,
+      speed: currentFallSpeed() * (0.85 + Math.random()*0.3),
+      wobble: Math.random()*Math.PI*2,
+      driftVx: dir * (60 + Math.random()*90)
+    });
+  }
+
+  function spawnBag(){
+    const x = 10 + Math.random() * (CONFIG.CANVAS_W - CONFIG.BAG_SIZE - 20);
+    const speed = (CONFIG.CANVAS_H + CONFIG.BAG_SIZE) / (CONFIG.BAG_FALL_DURATION_MS/1000);
+    bags.push({
+      baseX:x, x:x, y:-CONFIG.BAG_SIZE, size:CONFIG.BAG_SIZE,
+      speed:speed, phase: Math.random()*Math.PI*2
+    });
+  }
+
+  // 🔥 헬 모드: 상단 엉덩이 위치 — 큰 방귀는 좌우 위치와 무관하게(회피 불가)
+  // 오직 방독면 착용 여부만으로 생사가 갈리는 판정 이벤트다.
+  function buttX(){ return CONFIG.CANVAS_W/2; }
+  function triggerBigFart(){
+    bigFartFlashMs = CONFIG.BIG_FART_EFFECT_MS;
+    triggerShake();
+    if(!wearingMask){
+      playHitSound();
+      endRound(STATE.FAIL);
+      return true;
+    }
+    playTone(300, 150, "square"); // 방독면으로 막아냄
+    return false;
+  }
+
+  // 헬 모드 방독면은 한 번에 3개가 서로 다른 위치에서 함께 떨어진다
+  function spawnMask(){
+    const lanes = CONFIG.MASK_DROP_COUNT;
+    const usable = CONFIG.CANVAS_W - CONFIG.MASK_SIZE - 20;
+    const laneW = usable / lanes;
+    for(let i=0;i<lanes;i++){
+      const x = 10 + i*laneW + Math.random()*Math.max(1, laneW - 10);
+      masks.push({
+        x:x, y:-CONFIG.MASK_SIZE - i*24,
+        size:CONFIG.MASK_SIZE, speed:CONFIG.MASK_FALL_SPEED
+      });
+    }
+  }
+
+  function spawnSplat(x, size){
+    const n = 4 + Math.floor(Math.random()*3);
+    const blobs = [];
+    for(let i=0;i<n;i++){
+      blobs.push({
+        dx:(Math.random()-0.5)*size*0.7,
+        dy:(Math.random()-0.35)*size*0.3,
+        r: size*(0.26+Math.random()*0.22)
+      });
+    }
+    splats.push({
+      x:x, size:size, blobs:blobs,
+      dripDir: Math.random()<0.5?-1:1,
+      dripLen: size*(0.5+Math.random()*0.6),
+      createdAt: elapsedMs
+    });
+    if(splats.length > 40) splats.shift();
+  }
+
+  function rectsOverlap(ax,ay,aw,ah,bx,by,bw,bh){
+    return ax < bx+bw && ax+aw > bx && ay < by+bh && ay+ah > by;
+  }
+
+  function update(dtMs){
+    elapsedMs += dtMs;
+    spawnAccMs += dtMs;
+    bagSpawnAccMs += dtMs;
+
+    // 방향키를 누르고 있는 동안 목표 위치를 연속적으로 밀어낸다 — 마우스로
+    // 움직이는 것과 동일하게 부드럽게 이동하며, 뗄 때까지 계속 움직인다.
+    if(keyLeftHeld || keyRightHeld){
+      let dir = 0;
+      if(keyLeftHeld) dir -= 1;
+      if(keyRightHeld) dir += 1;
+      if(dir !== 0){
+        targetX = clampX(targetX + dir * KEYBOARD_MOVE_SPEED * (dtMs/1000));
+      }
+    }
+
+    // 목표 위치(targetX)로 매 프레임 부드럽게 수렴 — 마우스와 키보드 모두
+    // 동일한 방식으로 자연스럽게 미끄러지듯 이동한다.
+    const smoothing = 1 - Math.exp(-SMOOTH_RATE * (dtMs/1000));
+    player.x += (targetX - player.x) * smoothing;
+
+    const interval = currentSpawnIntervalMs();
+    let guard = 0;
+    while(spawnAccMs >= interval && guard < 20){
+      spawnAccMs -= interval;
+      spawnObstacle();
+      guard++;
+    }
+
+    // 익스트림/헬 모드 + 남은 시간 30초 이하: 일직선 낙하 똥과 별개로
+    // 좌우로 무작위 이동하는 똥을 추가로 생성한다.
+    const randomPoopThreshold = CONFIG.ROUND_DURATION_MS - 30000;
+    if((selectedDifficulty === "extreme" || selectedDifficulty === "hell") && elapsedMs >= randomPoopThreshold){
+      randomSpawnAccMs += dtMs;
+      let rGuard = 0;
+      while(randomSpawnAccMs >= CONFIG.RANDOM_POOP_SPAWN_MS && rGuard < 20){
+        randomSpawnAccMs -= CONFIG.RANDOM_POOP_SPAWN_MS;
+        spawnRandomDriftObstacle();
+        rGuard++;
+      }
+    }
+
+    // 🔥 헬 모드: 남은 시간 20초~5초 구간에 엉덩이가 나타나 큰 방귀를 뿜는다.
+    // 이 방귀는 좌우로 피할 수 있는 대상이 아니라, 발사되는 순간 방독면 착용
+    // 여부만으로 생사가 결정되는 판정 이벤트다 — 방독면 없이는 무조건 실패.
+    if(selectedDifficulty === "hell"){
+      const wasButtVisible = buttVisible;
+      buttVisible = elapsedMs >= CONFIG.HELL_FART_START_MS && elapsedMs < CONFIG.HELL_FART_END_MS;
+
+      if(buttVisible){
+        if(!wasButtVisible){
+          // 페이즈 진입 직후 곧바로 경고→발사가 이어지도록 타이머 세팅
+          // (= 페이즈 시작 전에 미리 방독면을 확보해두지 않으면 즉시 응징)
+          bigFartAccMs = 0;
+          bigFartWarningMs = CONFIG.BIG_FART_WARNING_MS;
+        }
+        if(bigFartWarningMs > 0){
+          bigFartWarningMs -= dtMs;
+          if(bigFartWarningMs <= 0){
+            bigFartWarningMs = 0;
+            if(triggerBigFart()) return;
+          }
+        }
+        bigFartAccMs += dtMs;
+        if(bigFartAccMs >= CONFIG.BIG_FART_INTERVAL_MS){
+          bigFartAccMs -= CONFIG.BIG_FART_INTERVAL_MS;
+          bigFartWarningMs = CONFIG.BIG_FART_WARNING_MS;
+        }
+      }else{
+        bigFartAccMs = 0;
+        bigFartWarningMs = 0;
+      }
+      if(bigFartFlashMs > 0){
+        bigFartFlashMs = Math.max(0, bigFartFlashMs - dtMs);
+      }
+
+      // 방독면: 남은 시간 25초 시점에 라운드당 1회만 낙하
+      if(!maskSpawnedThisRound && elapsedMs >= CONFIG.MASK_SPAWN_AT_MS){
+        maskSpawnedThisRound = true;
+        spawnMask();
+      }
+    }else{
+      buttVisible = false;
+    }
+
+    if(wearingMask){
+      maskTimeRemainingMs -= dtMs;
+      if(maskTimeRemainingMs <= 0){
+        maskTimeRemainingMs = 0;
+        wearingMask = false;
+      }
+    }
+
+    // 비닐봉지 아이템: 10초에 한 번 하늘에서 낙하
+    while(bagSpawnAccMs >= CONFIG.BAG_INTERVAL_MS){
+      bagSpawnAccMs -= CONFIG.BAG_INTERVAL_MS;
+      spawnBag();
+    }
+
+    if(holdingBag){
+      holdTimeRemainingMs -= dtMs;
+      if(holdTimeRemainingMs <= 0){
+        holdTimeRemainingMs = 0;
+        holdingBag = false;
+      }
+    }
+
+    const playerBox = {
+      x: player.x, y: CONFIG.GROUND_Y - CONFIG.PLAYER_SIZE + 10,
+      w: CONFIG.PLAYER_SIZE, h: CONFIG.PLAYER_SIZE - 10
+    };
+
+    // 봉지 낙하/획득 판정 (익스트림 모드에서만 좌우로 흔들리며 낙하)
+    for(let i = bags.length - 1; i >= 0; i--){
+      const b = bags[i];
+      b.y += b.speed * (dtMs/1000);
+      if(selectedDifficulty === "extreme" || selectedDifficulty === "hell"){
+        const sway = Math.sin(b.y/CONFIG.CANVAS_H * Math.PI * 2 + b.phase) * CONFIG.BAG_SWAY_AMPLITUDE;
+        const min = 4, max = CONFIG.CANVAS_W - b.size - 4;
+        b.x = Math.max(min, Math.min(max, b.baseX + sway));
+      }else{
+        b.x = b.baseX;
+      }
+      if(rectsOverlap(playerBox.x, playerBox.y, playerBox.w, playerBox.h, b.x, b.y, b.size, b.size)){
+        holdingBag = true;
+        holdTimeRemainingMs = CONFIG.BAG_HOLD_MS;
+        playCatchSound();
+        bags.splice(i,1);
+        continue;
+      }
+      if(b.y > CONFIG.CANVAS_H + 20){
+        bags.splice(i,1);
+      }
+    }
+
+    // 방독면 아이템 낙하/획득 판정
+    for(let i = masks.length - 1; i >= 0; i--){
+      const m = masks[i];
+      m.y += m.speed * (dtMs/1000);
+      if(rectsOverlap(playerBox.x, playerBox.y, playerBox.w, playerBox.h, m.x, m.y, m.size, m.size)){
+        wearingMask = true;
+        maskTimeRemainingMs = CONFIG.MASK_HOLD_MS;
+        playCatchSound();
+        masks.length = 0;   // 하나를 쓰면 남은 방독면은 사라진다
+        break;
+      }
+      if(m.y > CONFIG.CANVAS_H + 20){
+        masks.splice(i,1);
+      }
+    }
+
+    for(let i = obstacles.length - 1; i >= 0; i--){
+      const o = obstacles[i];
+      o.y += o.speed * (dtMs/1000);
+
+      if(o.driftVx){
+        o.x += o.driftVx * (dtMs/1000);
+        const min = 4, max = CONFIG.CANVAS_W - o.size - 4;
+        if(o.x < min){ o.x = min; o.driftVx = Math.abs(o.driftVx); }
+        if(o.x > max){ o.x = max; o.driftVx = -Math.abs(o.driftVx); }
+      }
+
+      if(rectsOverlap(playerBox.x, playerBox.y, playerBox.w, playerBox.h, o.x, o.y, o.size, o.size)){
+        if(holdingBag){
+          // 봉지를 들고 있는 동안에는 똥을 안전하게 담아 제거한다 (실패 처리하지 않음)
+          obstacles.splice(i,1);
+          continue;
+        }
+        endRound(STATE.FAIL);
+        return;
+      }
+      if(o.y + o.size >= CONFIG.CANVAS_H){
+        // 바닥에 닿음 — 뭉개진 자국을 남기고 제거
+        spawnSplat(o.x + o.size/2, o.size);
+        obstacles.splice(i,1);
+      }
+    }
+
+    // 오래된 바닥 자국 정리
+    for(let i = splats.length - 1; i >= 0; i--){
+      if(elapsedMs - splats[i].createdAt > CONFIG.SPLAT_FADE_MS){
+        splats.splice(i,1);
+      }
+    }
+
+    if(elapsedMs >= CONFIG.ROUND_DURATION_MS){
+      endRound(STATE.SUCCESS);
+      return;
+    }
+  }
+
+  /* =========================================================
+     렌더링
+     ========================================================= */
+  function draw(){
+    const W = CONFIG.CANVAS_W, H = CONFIG.CANVAS_H;
+
+    // 곰팡이 낀 듯한 얼룩 그라디언트 필드
+    const bgGrad = ctx.createLinearGradient(0,0,0,H);
+    bgGrad.addColorStop(0, "#5d6a2d");
+    bgGrad.addColorStop(0.55, "#6f7a3c");
+    bgGrad.addColorStop(1, "#4a4a1e");
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0,0,W,H);
+
+    // 더러운 얼룩 장식
+    ctx.save();
+    for(const d of bgDirt){
+      ctx.globalAlpha = d.a;
+      ctx.fillStyle = "#3a3216";
+      ctx.beginPath();
+      ctx.ellipse(d.x, d.y, d.r, d.r*0.6, 0.4, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = "#57611f";
+    for(const p of bgPoops){ drawPoopShape(p.x, p.y, 22*p.s, false, 0); }
+    ctx.restore();
+
+    for(const s of splats){
+      drawSplat(s);
+    }
+
+    for(const o of obstacles){
+      drawStinkLines(o.x + o.size/2, o.y, o.size, o.wobble + elapsedMs/300);
+      drawPoopShape(o.x + o.size/2, o.y + o.size/2, o.size*0.5, true, o.wobble + elapsedMs/160);
+    }
+
+    for(const b of bags){
+      drawBagShape(b.x, b.y, b.size);
+    }
+
+    for(const m of masks){
+      drawMaskShape(m.x, m.y, m.size);
+    }
+
+    if(buttVisible){
+      drawButtMascot(buttX(), 4, bigFartWarningMs);
+    }
+
+    // 🔥 헬 모드: 방독면 관련 경고 문구 — 플레이어가 반드시 인지하도록 크게 표시
+    if(selectedDifficulty === "hell" && !wearingMask){
+      if(masks.length > 0){
+        drawWarningBanner("⚠️ 방독면을 놓치면 방귀에 무조건 즉사합니다! 꼭 챙기세요!", "#ffef3d");
+      }else if(buttVisible){
+        drawWarningBanner("🚨 방독면 없이는 방귀를 절대 피할 수 없습니다!", "#ff5a3c");
+      }
+    }
+
+    drawPlayer(player.x, CONFIG.GROUND_Y - CONFIG.PLAYER_SIZE, CONFIG.PLAYER_SIZE);
+
+    if(bigFartFlashMs > 0){
+      drawBigFartBlast(bigFartFlashMs);
+    }
+
+    if(wearingMask){
+      drawWornMask(player.x + CONFIG.PLAYER_SIZE/2, CONFIG.GROUND_Y - CONFIG.PLAYER_SIZE + CONFIG.PLAYER_SIZE*0.44, CONFIG.PLAYER_SIZE);
+    }
+
+    if(holdingBag){
+      drawHeldBagIndicator(player.x + CONFIG.PLAYER_SIZE/2, CONFIG.GROUND_Y - CONFIG.PLAYER_SIZE);
+    }
+    if(wearingMask){
+      drawMaskTimeIndicator(player.x + CONFIG.PLAYER_SIZE/2, CONFIG.GROUND_Y - CONFIG.PLAYER_SIZE - (holdingBag?36:14));
+    }
+
+    drawFilth();
+  }
+
+  /* 더럽고 냄새나는 분위기 연출: 천장 점액, 파리떼, 악취 아지랑이, 때 낀 비네트 */
+  const flies = (function(){
+    const arr = [];
+    for(let i=0;i<9;i++){
+      arr.push({
+        bx: 60 + Math.random()*(CONFIG.CANVAS_W-120),
+        by: 40 + Math.random()*(CONFIG.CANVAS_H-120),
+        rx: 18 + Math.random()*40,
+        ry: 10 + Math.random()*26,
+        sp: 0.7 + Math.random()*1.6,
+        ph: Math.random()*Math.PI*2
+      });
+    }
+    return arr;
+  })();
+
+  const ceilingSlime = (function(){
+    const arr = [];
+    for(let i=0;i<11;i++){
+      arr.push({ x: 20 + i*(CONFIG.CANVAS_W-40)/10, w: 7 + Math.random()*11, h: 10 + Math.random()*26 });
+    }
+    return arr;
+  })();
+
+  function drawFilth(){
+    const W = CONFIG.CANVAS_W, H = CONFIG.CANVAS_H;
+    const t = elapsedMs/1000;
+
+    // 천장에서 늘어진 초록 점액
+    ctx.save();
+    ctx.fillStyle = "#7f9c1c";
+    ctx.globalAlpha = 0.85;
+    for(const g of ceilingSlime){
+      const drop = g.h + Math.sin(t*1.2 + g.x) * 3;
+      ctx.beginPath();
+      ctx.moveTo(g.x - g.w/2, 0);
+      ctx.lineTo(g.x + g.w/2, 0);
+      ctx.quadraticCurveTo(g.x + g.w/2, drop, g.x, drop + g.w*0.6);
+      ctx.quadraticCurveTo(g.x - g.w/2, drop, g.x - g.w/2, 0);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+
+    // 파리떼
+    ctx.save();
+    ctx.fillStyle = "#1b1b12";
+    for(const f of flies){
+      const fx = f.bx + Math.cos(t*f.sp + f.ph) * f.rx;
+      const fy = f.by + Math.sin(t*f.sp*1.7 + f.ph) * f.ry;
+      ctx.beginPath();
+      ctx.ellipse(fx, fy, 2.6, 1.8, 0.3, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 0.4;
+      ctx.beginPath();
+      ctx.ellipse(fx-1.5, fy-2.2, 2.2, 1.0, -0.6, 0, Math.PI*2);
+      ctx.ellipse(fx+1.5, fy-2.2, 2.2, 1.0, 0.6, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+
+    // 바닥에서 올라오는 악취 아지랑이
+    ctx.save();
+    ctx.globalAlpha = 0.18;
+    ctx.strokeStyle = "#c6e05a";
+    ctx.lineWidth = 3;
+    for(let i=0;i<5;i++){
+      const bx = 70 + i*(W-140)/4;
+      ctx.beginPath();
+      ctx.moveTo(bx, H-6);
+      ctx.quadraticCurveTo(bx + Math.sin(t*1.5+i)*14, H-56, bx, H-104);
+      ctx.quadraticCurveTo(bx - Math.sin(t*1.5+i)*14, H-152, bx, H-198);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // 때 낀 비네트
+    const vg = ctx.createRadialGradient(W/2, H/2, H*0.35, W/2, H/2, H*0.85);
+    vg.addColorStop(0, "rgba(0,0,0,0)");
+    vg.addColorStop(1, "rgba(28,20,5,0.55)");
+    ctx.fillStyle = vg;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  function drawStinkLines(cx, topY, size, t){
+    // 더럽고 냄새나는 연출용 아지랑이(냄새) 곡선
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = "#8fae3f";
+    ctx.lineWidth = 2;
+    for(let i=-1;i<=1;i+=2){
+      ctx.beginPath();
+      const bx = cx + i*size*0.28;
+      ctx.moveTo(bx, topY - 2);
+      ctx.quadraticCurveTo(bx + Math.sin(t)*6, topY - 12, bx, topY - 22);
+      ctx.quadraticCurveTo(bx - Math.sin(t)*6, topY - 32, bx, topY - 42);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawBagShape(x, y, size){
+    /* 참고 이미지 6 반영: 검정 아웃라인의 하늘색 카툰 비닐봉지
+       (양쪽 손잡이 + 둥근 몸통 + 주름선) */
+    const cx = x + size/2;
+    const top = y + size*0.30;      // 몸통 어깨선
+    const bottom = y + size*0.98;
+    const halfW = size*0.46;
+    const OUT = "#1b1b1b";
+
+    ctx.save();
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.max(1.5, size*0.045);
+    ctx.strokeStyle = OUT;
+    ctx.fillStyle = "#b7ddf5";
+
+    // 몸통(어깨에서 아래로 부풀었다가 둥글게 닫힘)
+    ctx.beginPath();
+    ctx.moveTo(cx - size*0.26, top);
+    ctx.bezierCurveTo(cx - size*0.40, top + size*0.10, cx - halfW, bottom - size*0.26, cx - size*0.34, bottom - size*0.05);
+    ctx.bezierCurveTo(cx - size*0.16, bottom + size*0.05, cx + size*0.16, bottom + size*0.05, cx + size*0.34, bottom - size*0.05);
+    ctx.bezierCurveTo(cx + halfW, bottom - size*0.26, cx + size*0.40, top + size*0.10, cx + size*0.26, top);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 손잡이(양쪽 뿔 모양)
+    ctx.beginPath();
+    ctx.moveTo(cx - size*0.26, top);
+    ctx.lineTo(cx - size*0.30, y + size*0.03);
+    ctx.bezierCurveTo(cx - size*0.20, y - size*0.02, cx - size*0.10, y + size*0.06, cx - size*0.05, top - size*0.02);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(cx + size*0.26, top);
+    ctx.lineTo(cx + size*0.30, y + size*0.03);
+    ctx.bezierCurveTo(cx + size*0.20, y - size*0.02, cx + size*0.10, y + size*0.06, cx + size*0.05, top - size*0.02);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 주름선
+    ctx.lineWidth = Math.max(1, size*0.028);
+    ctx.beginPath();
+    ctx.moveTo(cx - size*0.20, top + size*0.10);
+    ctx.quadraticCurveTo(cx - size*0.02, top + size*0.16, cx + size*0.10, top + size*0.06);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - size*0.26, top + size*0.32);
+    ctx.quadraticCurveTo(cx - size*0.06, top + size*0.40, cx + size*0.06, top + size*0.30);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx - size*0.20, top + size*0.50);
+    ctx.quadraticCurveTo(cx + size*0.00, top + size*0.56, cx + size*0.14, top + size*0.46);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawHeldBagIndicator(cx, topY){
+    // 봉지를 들고 있는 동안 캐릭터 위에 작은 봉지 아이콘 + 남은 시간 바 표시
+    const size = 30;
+    drawBagShape(cx - size/2, topY - size - 14, size);
+
+    const pct = Math.max(0, holdTimeRemainingMs / CONFIG.BAG_HOLD_MS);
+    const barW = 46, barH = 6;
+    const bx = cx - barW/2, by = topY - 14;
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fillRect(bx, by, barW, barH);
+    ctx.fillStyle = "#2f8fd6";
+    ctx.fillRect(bx, by, barW*pct, barH);
+    ctx.strokeStyle = "rgba(0,0,0,0.3)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx, by, barW, barH);
+  }
+
+  function drawSplat(s){
+    // 첨부 이미지를 참고한, 바닥에 뭉개진 똥 자국(시간이 지나면 서서히 사라짐)
+    const age = elapsedMs - s.createdAt;
+    const alpha = Math.max(0, 1 - age / CONFIG.SPLAT_FADE_MS);
+    if(alpha <= 0) return;
+
+    const gy = CONFIG.CANVAS_H - 4;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    // 흘러내린 얇은 액체 자국(드립)
+    ctx.strokeStyle = "#7a5a1e";
+    ctx.lineWidth = Math.max(2, s.size*0.08);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(s.x + s.dripDir*s.size*0.18, gy - s.size*0.05);
+    ctx.lineTo(s.x + s.dripDir*(s.size*0.18 + s.dripLen*0.4), gy + s.dripLen*0.35);
+    ctx.stroke();
+
+    // 뭉개진 본체(불규칙한 여러 덩어리를 겹쳐 유기적인 형태 표현)
+    for(const b of s.blobs){
+      ctx.fillStyle = "#5f431c";
+      ctx.beginPath();
+      ctx.ellipse(s.x+b.dx, gy+b.dy, b.r*1.06, b.r*0.62, 0.3, 0, Math.PI*2);
+      ctx.fill();
+    }
+    for(const b of s.blobs){
+      ctx.fillStyle = "#8a6a2e";
+      ctx.beginPath();
+      ctx.ellipse(s.x+b.dx*0.85, gy+b.dy*0.85 - 1, b.r*0.85, b.r*0.5, 0.3, 0, Math.PI*2);
+      ctx.fill();
+    }
+    // 짙은 얼룩 포인트(질감)
+    ctx.fillStyle = "rgba(60,40,10,0.5)";
+    for(const b of s.blobs){
+      ctx.beginPath();
+      ctx.arc(s.x+b.dx*0.6, gy+b.dy*0.6, b.r*0.22, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  function drawPoopShape(cx, cy, r, colored, wob){
+    /* 참고 이미지 1 반영: 아래로 갈수록 넓어지는 3단 똬리 + 위로 솟은 꼭지,
+       젖은 듯한 글로시 하이라이트와 얼룩 질감을 가진 사실적인 덩어리 */
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    /* 낙하 중 흐물거리는 젤리 변형: 가로로 퍼지면 세로로 눌리고,
+       각 단이 시간차를 두고 좌우로 밀려 물컹한 느낌을 준다 */
+    const w = (typeof wob === "number") ? wob : 0;
+    const squash = Math.sin(w) * 0.14;
+    ctx.scale(1 + squash, 1 - squash);
+    ctx.rotate(Math.sin(w*0.7) * 0.07);
+
+    const tiers = [
+      [ r*0.60,  r*0.98, r*0.34 ],
+      [ r*0.10,  r*0.76, r*0.29 ],
+      [-r*0.32,  r*0.54, r*0.24 ]
+    ];
+
+    function tierGrad(ty, rx){
+      const g = ctx.createLinearGradient(-rx, ty-rx*0.6, rx*0.6, ty+rx*0.6);
+      g.addColorStop(0,    "#b5803f");
+      g.addColorStop(0.35, "#94612a");
+      g.addColorStop(0.75, "#6d4319");
+      g.addColorStop(1,    "#472a0d");
+      return g;
+    }
+
+    // 꼭지
+    ctx.save();
+    ctx.translate(Math.sin(w - 2.4) * r*0.12, 0);
+    ctx.beginPath();
+    ctx.moveTo(-r*0.22, -r*0.40);
+    ctx.bezierCurveTo(-r*0.32, -r*0.86, -r*0.02, -r*1.14, r*0.14, -r*1.02);
+    ctx.bezierCurveTo(r*0.32, -r*0.90, r*0.28, -r*0.54, r*0.22, -r*0.38);
+    ctx.closePath();
+    if(colored) ctx.fillStyle = tierGrad(-r*0.70, r*0.34);
+    ctx.fill();
+    ctx.restore();
+
+    // 3단 똬리
+    for(let i=0;i<tiers.length;i++){
+      const t = tiers[i];
+      // 단마다 위상차를 준 좌우 흔들림 + 두께 출렁임
+      const wob2 = 1 + Math.sin(w*1.3 - i*0.5) * 0.10;
+      t[1] *= wob2;
+      t[2] /= wob2;
+      t[3] = Math.sin(w - i*0.8) * r*0.10;
+      ctx.beginPath();
+      ctx.ellipse(t[3], t[0], t[1], t[2], 0, 0, Math.PI*2);
+      if(colored) ctx.fillStyle = tierGrad(t[0], t[1]);
+      ctx.fill();
+
+      if(colored){
+        ctx.save();
+        ctx.globalAlpha = 0.35;
+        ctx.fillStyle = "#38200a";
+        ctx.beginPath();
+        ctx.ellipse(t[3], t[0]-t[2]*0.88, t[1]*0.80, t[2]*0.28, 0, 0, Math.PI*2);
+        ctx.fill();
+        ctx.restore();
+
+        ctx.save();
+        ctx.globalAlpha = 0.45;
+        ctx.strokeStyle = "#e9c78d";
+        ctx.lineWidth = Math.max(1, r*0.08);
+        ctx.lineCap = "round";
+        ctx.beginPath();
+        ctx.ellipse(t[3]-r*0.06, t[0]-t[2]*0.30, t[1]*0.58, t[2]*0.45, -0.15, Math.PI*1.05, Math.PI*1.72);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    if(colored){
+      ctx.save();
+      ctx.globalAlpha = 0.28;
+      ctx.fillStyle = "#3f2409";
+      const spots = [[-r*0.44,r*0.54],[r*0.42,r*0.64],[-r*0.28,r*0.06],[r*0.30,r*0.14],[-r*0.10,-r*0.32],[r*0.14,-r*0.26]];
+      for(const sp of spots){
+        ctx.beginPath();
+        ctx.ellipse(sp[0], sp[1], r*0.12, r*0.06, 0.4, 0, Math.PI*2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalAlpha = 0.20;
+      ctx.fillStyle = "#160d04";
+      ctx.beginPath();
+      ctx.ellipse(0, r*0.92, r*0.94, r*0.13, 0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    ctx.restore();
+  }
+
+  function drawPlayer(x,y,size){
+    const cx = x + size/2, cy = y + size/2;
+    const OUT = "#241611"; // 굵은 검정 아웃라인 (참고 이미지 2의 카툰 라인 스타일)
+
+    // 그림자
+    ctx.fillStyle = "rgba(0,0,0,0.15)";
+    ctx.beginPath();
+    ctx.ellipse(cx, CONFIG.GROUND_Y+6, size*0.42, 6, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // 파란 몸통/손 (굵은 아웃라인 적용)
+    ctx.fillStyle = "#2f8fd6";
+    ctx.strokeStyle = OUT;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx-size*0.28, cy+size*0.30);
+    ctx.quadraticCurveTo(cx, cy+size*0.62, cx+size*0.28, cy+size*0.30);
+    ctx.lineTo(cx+size*0.20, cy+size*0.10);
+    ctx.lineTo(cx-size*0.20, cy+size*0.10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 얼굴 (참고 이미지 2의 살구빛 피부톤 + 굵은 외곽선)
+    ctx.fillStyle = "#c9906c";
+    ctx.beginPath();
+    ctx.arc(cx, cy - size*0.06, size*0.42, 0, Math.PI*2);
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = OUT;
+    ctx.stroke();
+
+    // 머리(검정 아치)
+    ctx.fillStyle = "#1c1108";
+    ctx.beginPath();
+    ctx.arc(cx, cy - size*0.06, size*0.44, Math.PI*1.08, Math.PI*1.92);
+    ctx.lineTo(cx+size*0.30, cy - size*0.20);
+    ctx.lineTo(cx-size*0.30, cy - size*0.20);
+    ctx.closePath();
+    ctx.fill();
+
+    // 눈 (반쯤 감긴 아몬드형, 흰자 + 굵은 아웃라인 + 속눈썹 — 참고 이미지 2 스타일)
+    ctx.fillStyle = "#fff";
+    ctx.strokeStyle = OUT;
+    ctx.lineWidth = 2.2;
+    // 왼쪽 눈
+    ctx.beginPath();
+    ctx.moveTo(cx-size*0.27, cy-size*0.05);
+    ctx.quadraticCurveTo(cx-size*0.16, cy-size*0.16, cx-size*0.05, cy-size*0.06);
+    ctx.quadraticCurveTo(cx-size*0.16, cy+size*0.00, cx-size*0.27, cy-size*0.05);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    // 오른쪽 눈
+    ctx.beginPath();
+    ctx.moveTo(cx+size*0.27, cy-size*0.05);
+    ctx.quadraticCurveTo(cx+size*0.16, cy-size*0.16, cx+size*0.05, cy-size*0.06);
+    ctx.quadraticCurveTo(cx+size*0.16, cy+size*0.00, cx+size*0.27, cy-size*0.05);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    // 속눈썹
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(cx-size*0.27, cy-size*0.05); ctx.lineTo(cx-size*0.31, cy-size*0.09);
+    ctx.moveTo(cx+size*0.27, cy-size*0.05); ctx.lineTo(cx+size*0.31, cy-size*0.09);
+    ctx.stroke();
+    // 눈동자
+    ctx.fillStyle = OUT;
+    ctx.beginPath(); ctx.arc(cx-size*0.15, cy-size*0.07, size*0.028, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+size*0.15, cy-size*0.07, size*0.028, 0, Math.PI*2); ctx.fill();
+
+    // 코 (동그란 콧구멍 2개 — 참고 이미지 2 스타일)
+    ctx.strokeStyle = OUT;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx-size*0.03, cy+size*0.00);
+    ctx.quadraticCurveTo(cx-size*0.07, cy+size*0.10, cx-size*0.02, cy+size*0.13);
+    ctx.stroke();
+    ctx.fillStyle = "rgba(36,22,17,0.55)";
+    ctx.beginPath(); ctx.ellipse(cx-size*0.02, cy+size*0.13, size*0.018, size*0.012, 0.3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx+size*0.05, cy+size*0.12, size*0.018, size*0.012, -0.3, 0, Math.PI*2); ctx.fill();
+
+    // 도톰한 입술 (참고 이미지 2 스타일)
+    ctx.fillStyle = "#a5514f";
+    ctx.strokeStyle = OUT;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx-size*0.15, cy+size*0.21);
+    ctx.quadraticCurveTo(cx, cy+size*0.16, cx+size*0.15, cy+size*0.21);
+    ctx.quadraticCurveTo(cx+size*0.08, cy+size*0.29, cx, cy+size*0.27);
+    ctx.quadraticCurveTo(cx-size*0.08, cy+size*0.29, cx-size*0.15, cy+size*0.21);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx-size*0.10, cy+size*0.215);
+    ctx.quadraticCurveTo(cx, cy+size*0.19, cx+size*0.10, cy+size*0.215);
+    ctx.stroke();
+
+    // 볼터치
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.beginPath();
+    ctx.arc(cx - size*0.24, cy+size*0.06, size*0.07, 0, Math.PI*2);
+    ctx.arc(cx + size*0.24, cy+size*0.06, size*0.07, 0, Math.PI*2);
+    ctx.fill();
+
+    // 땀
+    ctx.fillStyle = "#bfe6ff";
+    ctx.strokeStyle = OUT;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(cx+size*0.36, cy-size*0.18);
+    ctx.quadraticCurveTo(cx+size*0.42, cy-size*0.05, cx+size*0.36, cy+size*0.02);
+    ctx.quadraticCurveTo(cx+size*0.30, cy-size*0.05, cx+size*0.36, cy-size*0.18);
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  function drawButtMascot(cx, topY, warningMs){
+    /* 참고 이미지 3 반영: 화면 위에서 내려온, 빨간 물방울무늬 팬티를 입은 엉덩이
+       warningMs > 0 이면 "큰 방귀"를 발사하기 직전 — 힘주어 꽉 조이는 예비동작을 보여준다 */
+    const w = 132, h = 92;
+    const x = cx - w/2, y = topY;
+    const OUT = "#2a1a12";
+    const charging = warningMs > 0;
+    const chargeT = charging ? 1 - (warningMs / CONFIG.BIG_FART_WARNING_MS) : 0; // 0→1
+    const bob = charging ? Math.sin(elapsedMs/45) * (3 + chargeT*5) : Math.sin(elapsedMs/220) * 4;
+    const squeeze = charging ? 1 - chargeT*0.14 : 1; // 발사 직전 옆으로 오므라듦
+
+    ctx.save();
+    ctx.translate(cx, 0);
+    ctx.scale(squeeze, 1 + (1-squeeze)*0.6);
+    ctx.translate(-cx, bob);
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = OUT;
+
+    // 다리 두 짝
+    ctx.fillStyle = "#f2b48c";
+    for(const s of [-1, 1]){
+      ctx.beginPath();
+      ctx.ellipse(cx + s*w*0.26, y + h*0.86, w*0.15, h*0.26, 0, 0, Math.PI*2);
+      ctx.fill(); ctx.stroke();
+    }
+
+    // 엉덩이 두 짝(살색) — 힘줄 때 살짝 붉어짐
+    ctx.fillStyle = charging ? `rgb(${247},${196-Math.round(chargeT*40)},${156-Math.round(chargeT*60)})` : "#f7c39c";
+    for(const s of [-1, 1]){
+      ctx.beginPath();
+      ctx.ellipse(cx + s*w*0.20, y + h*0.55, w*0.28, h*0.42, 0, 0, Math.PI*2);
+      ctx.fill(); ctx.stroke();
+    }
+
+    // 빨간 물방울무늬 팬티
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x + w*0.06, y + h*0.16);
+    ctx.lineTo(x + w*0.94, y + h*0.16);
+    ctx.bezierCurveTo(x + w*0.90, y + h*0.72, x + w*0.66, y + h*0.78, x + w*0.50, y + h*0.60);
+    ctx.bezierCurveTo(x + w*0.34, y + h*0.78, x + w*0.10, y + h*0.72, x + w*0.06, y + h*0.16);
+    ctx.closePath();
+    ctx.fillStyle = "#e3453f";
+    ctx.fill();
+    ctx.stroke();
+    ctx.clip();
+    ctx.fillStyle = "#fff";
+    for(let r=0;r<3;r++){
+      for(let c=0;c<6;c++){
+        ctx.beginPath();
+        ctx.arc(x + w*0.12 + c*w*0.155, y + h*0.24 + r*h*0.17, 4.5, 0, Math.PI*2);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+
+    // 엉덩이 골(가운데 선)
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx, y + h*0.44);
+    ctx.lineTo(cx, y + h*0.90);
+    ctx.stroke();
+
+    ctx.restore();
+
+    if(charging){
+      // 경고 텍스트 + 힘줄 표시(깜빡임)
+      ctx.save();
+      const blink = Math.sin(elapsedMs/60) > 0;
+      ctx.globalAlpha = blink ? 0.95 : 0.5;
+      ctx.fillStyle = "#ffef3d";
+      ctx.strokeStyle = "#5a1a0f";
+      ctx.lineWidth = 3;
+      ctx.font = "bold 20px 'Trebuchet MS', sans-serif";
+      ctx.textAlign = "center";
+      const warnY = y + h + 22;
+      ctx.strokeText("💨 위험! 큰 방귀 온다!", cx, warnY);
+      ctx.fillText("💨 위험! 큰 방귀 온다!", cx, warnY);
+      ctx.restore();
+    }
+  }
+
+  function drawWarningBanner(text, color){
+    // 헬 모드에서 방독면 관련 경고를 화면에 크게 표시 — 엉덩이 마스코트(위쪽)와
+    // 겹치지 않도록 그 아래쪽에 띠 형태로 배치한다.
+    const y = 118;
+    ctx.save();
+    const blink = Math.sin(elapsedMs/140) > -0.15;
+    ctx.globalAlpha = blink ? 0.95 : 0.55;
+    ctx.fillStyle = "rgba(20,10,5,0.6)";
+    ctx.fillRect(30, y-17, CONFIG.CANVAS_W-60, 28);
+    ctx.strokeStyle = "rgba(255,255,255,0.15)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(30, y-17, CONFIG.CANVAS_W-60, 28);
+
+    ctx.fillStyle = color;
+    ctx.strokeStyle = "#1a0f08";
+    ctx.lineWidth = 3.2;
+    ctx.lineJoin = "round";
+    ctx.font = "bold 15px 'Trebuchet MS', sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.strokeText(text, CONFIG.CANVAS_W/2, y);
+    ctx.fillText(text, CONFIG.CANVAS_W/2, y);
+    ctx.restore();
+  }
+
+  function drawBigFartBlast(flashMs){
+    // 큰 방귀 발사 — 화면 전체를 뒤덮는, 좌우 위치와 무관한 판정용 이펙트
+    const p = flashMs / CONFIG.BIG_FART_EFFECT_MS; // 1(발사 직후) → 0(소멸)
+    const W = CONFIG.CANVAS_W, H = CONFIG.CANVAS_H;
+    const cx = buttX(), cy = 60;
+
+    ctx.save();
+    // 화면 전체 갈색 스크린 톤(충격 표시)
+    ctx.globalAlpha = 0.30 * p;
+    ctx.fillStyle = "#5a3a12";
+    ctx.fillRect(0,0,W,H);
+    ctx.restore();
+
+    // 화면 폭 전체로 뻗어나가는 방귀 구름 — 큰 원 여러 개를 옆으로 넓게 배치
+    const spread = (1-p) * W * 0.75; // 시간이 지날수록 옆으로 퍼짐
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, p);
+    for(let i=-3;i<=3;i++){
+      const lobeX = cx + i*46 + (i!==0 ? Math.sign(i)*spread*(Math.abs(i)/3) : 0);
+      const lobeY = cy + Math.abs(i)*10;
+      const r = (34 - Math.abs(i)*3) * (0.85+p*0.3);
+      ctx.fillStyle = i%2===0 ? "#8a6330" : "#7a5527";
+      ctx.strokeStyle = "#2a1a0d";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(lobeX, lobeY, Math.max(4,r), 0, Math.PI*2);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawMaskShape(x, y, size){
+    /* 참고 이미지 5 반영: 검정 고무 방독면(투명 렌즈 2개 + 필터통) */
+    const cx = x + size/2, cy = y + size/2;
+    const r = size*0.5;
+
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = Math.max(1, r*0.07);
+
+    // 머리끈
+    ctx.fillStyle = "#1a1a1a";
+    ctx.beginPath();
+    ctx.ellipse(0, -r*0.78, r*0.72, r*0.22, 0, 0, Math.PI*2);
+    ctx.fill();
+
+    // 마스크 본체
+    ctx.fillStyle = "#232323";
+    ctx.beginPath();
+    ctx.moveTo(-r*0.82, -r*0.52);
+    ctx.bezierCurveTo(-r*0.98, r*0.20, -r*0.52, r*0.98, 0, r*0.98);
+    ctx.bezierCurveTo(r*0.52, r*0.98, r*0.98, r*0.20, r*0.82, -r*0.52);
+    ctx.bezierCurveTo(r*0.45, -r*0.92, -r*0.45, -r*0.92, -r*0.82, -r*0.52);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // 렌즈 2개
+    for(const s of [-1, 1]){
+      ctx.fillStyle = "#cfe3ea";
+      ctx.beginPath();
+      ctx.ellipse(s*r*0.38, -r*0.22, r*0.30, r*0.24, s*0.15, 0, Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = Math.max(1, r*0.06);
+      ctx.stroke();
+      // 반사 하이라이트
+      ctx.save();
+      ctx.globalAlpha = 0.75;
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      ctx.ellipse(s*r*0.30, -r*0.30, r*0.10, r*0.06, -0.4, 0, Math.PI*2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // 중앙 배기 밸브
+    ctx.fillStyle = "#111";
+    ctx.beginPath();
+    ctx.arc(0, r*0.34, r*0.22, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = "#3d3d3d";
+    ctx.lineWidth = Math.max(1, r*0.05);
+    for(let i=-2;i<=2;i++){
+      ctx.beginPath();
+      ctx.moveTo(-r*0.16, r*0.34 + i*r*0.07);
+      ctx.lineTo(r*0.16, r*0.34 + i*r*0.07);
+      ctx.stroke();
+    }
+
+    // 오른쪽 필터통
+    ctx.fillStyle = "#1c1c1c";
+    ctx.beginPath();
+    ctx.ellipse(r*0.86, r*0.30, r*0.26, r*0.30, 0, 0, Math.PI*2);
+    ctx.fill();
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = Math.max(1, r*0.06);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawWornMask(cx, cy, playerSize){
+    // 캐릭터 얼굴 위에 씌워지는 방독면(플레이어 크기에 맞춰 축소)
+    const size = playerSize*0.86;
+    drawMaskShape(cx - size/2, cy - size/2, size);
+  }
+
+  function drawMaskTimeIndicator(cx, topY){
+    // 방독면 남은 지속 시간 바
+    const pct = Math.max(0, maskTimeRemainingMs / CONFIG.MASK_HOLD_MS);
+    const barW = 46, barH = 6;
+    const bx = cx - barW/2, by = topY;
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.fillRect(bx, by, barW, barH);
+    ctx.fillStyle = "#3fae5a";
+    ctx.fillRect(bx, by, barW*pct, barH);
+    ctx.strokeStyle = "rgba(0,0,0,0.3)";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(bx, by, barW, barH);
+  }
+
+  /* =========================================================
+     HUD 갱신
+     ========================================================= */
+  function updateHud(){
+    const survivedMs = Math.min(elapsedMs, CONFIG.ROUND_DURATION_MS);
+    timeValue.textContent = Math.ceil((CONFIG.ROUND_DURATION_MS - survivedMs)/1000);
+    if(state !== STATE.PLAYING && state !== STATE.PAUSED) timeValue.textContent = "0";
+
+    const scorePct = Math.min(100, (survivedMs / CONFIG.ROUND_DURATION_MS) * 100);
+    scoreFill.style.width = scorePct + "%";
+
+    const bestPct = bestMs > 0 ? Math.min(100, (survivedMs / bestMs) * 100) : (survivedMs>0?100:0);
+    bestFill.style.width = bestPct + "%";
+
+    bestLabelTop.textContent = (bestMs/1000).toFixed(1);
+    diffLabelTop.textContent = DIFFICULTY_PRESETS[selectedDifficulty].label;
+
+    if(state !== STATE.PLAYING && state !== STATE.PAUSED){
+      bagStatusTop.textContent = "대기 중";
+    }else if(holdingBag){
+      bagStatusTop.textContent = "사용 중 (" + (holdTimeRemainingMs/1000).toFixed(1) + "초)";
+    }else{
+      const nextInMs = Math.max(0, CONFIG.BAG_INTERVAL_MS - bagSpawnAccMs);
+      bagStatusTop.textContent = "다음 낙하까지 " + Math.ceil(nextInMs/1000) + "초";
+    }
+
+    // 방독면 상태(헬 모드 전용)
+    if(selectedDifficulty !== "hell"){
+      maskStatusTop.textContent = "헬 모드 전용";
+    }else if(state !== STATE.PLAYING && state !== STATE.PAUSED){
+      maskStatusTop.textContent = "대기 중";
+    }else if(wearingMask){
+      maskStatusTop.textContent = "착용 중 (" + (maskTimeRemainingMs/1000).toFixed(1) + "초)";
+    }else if(!maskSpawnedThisRound){
+      const inMs = Math.max(0, CONFIG.MASK_SPAWN_AT_MS - elapsedMs);
+      maskStatusTop.textContent = "낙하까지 " + Math.ceil(inMs/1000) + "초";
+    }else if(masks.length > 0){
+      maskStatusTop.textContent = "낙하 중! 잡으세요 (" + masks.length + "개)";
+    }else{
+      maskStatusTop.textContent = "놓침";
+    }
+  }
+
+  /* =========================================================
+     메인 루프
+     ========================================================= */
+  function loop(ts){
+    if(state === STATE.PLAYING){
+      if(lastTs === null) lastTs = ts;
+      let dt = ts - lastTs;
+      lastTs = ts;
+      if(dt > 100) dt = 100;
+      update(dt);
+      updateHud();
+    }else{
+      lastTs = null;
+    }
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  // 초기 상태
+  document.body.classList.toggle("reduce-motion", reduceMotion);
+  motionBtn.setAttribute("aria-pressed", String(reduceMotion));
+  if(reduceMotion) motionBtn.textContent = "🌀 움직임 켜기";
+  setDifficulty("normal");
+  updateHud();
+  draw();
+  requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
